@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-full overflow-y-auto select-none">
     <div v-if="!el" class="flex-1 flex items-center justify-center p-8 text-center text-zinc-500 text-xs">
-      <p>Pilih elemen di canvas untuk mengedit propertinya</p>
+      <p>Pilih elemen pada kanvas untuk mengubah properti.</p>
     </div>
 
     <template v-else>
@@ -34,7 +34,7 @@
             <input type="number" :value="el.height" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs outline-none focus:border-amber-500" @change="update('height', +($event.target as HTMLInputElement).value)" />
           </label>
           <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
-            <span>Rotasi °</span>
+            <span>Rotasi (°)</span>
             <input type="number" :value="el.rotation" step="1" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs outline-none focus:border-amber-500" @change="update('rotation', +($event.target as HTMLInputElement).value)" />
           </label>
           <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
@@ -49,13 +49,13 @@
         <section class="p-3.5 border-b border-zinc-800 flex flex-col gap-2.5">
           <h3 class="text-[10px] font-bold font-mono tracking-wider uppercase text-zinc-400">Foto</h3>
           <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
-            <span>Slot</span>
+            <span>Slot Foto</span>
             <select :value="el.slot" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs outline-none focus:border-amber-500" @change="update('slot', +($event.target as HTMLSelectElement).value)">
               <option v-for="i in 6" :key="i" :value="i - 1">Foto {{ i }}</option>
             </select>
           </label>
           <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
-            <span>Fit</span>
+            <span>Kesesuaian</span>
             <select :value="el.fit" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs outline-none focus:border-amber-500" @change="update('fit', ($event.target as HTMLSelectElement).value)">
               <option value="cover">Cover</option>
               <option value="contain">Contain</option>
@@ -63,17 +63,17 @@
             </select>
           </label>
           <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
-            <span>Border Radius</span>
+            <span>Radius Sudut</span>
             <input type="range" min="0" max="200" :value="el.borderRadius" class="accent-amber-500" @input="update('borderRadius', +($event.target as HTMLInputElement).value)" />
           </label>
           <div class="flex items-center gap-4 text-xs text-zinc-300 pt-1">
             <label class="flex items-center gap-1.5 cursor-pointer">
               <input type="checkbox" :checked="el.flipH" class="accent-amber-500" @change="update('flipH', ($event.target as HTMLInputElement).checked)" />
-              Flip H
+              Balik Horizontal
             </label>
             <label class="flex items-center gap-1.5 cursor-pointer">
               <input type="checkbox" :checked="el.flipV" class="accent-amber-500" @change="update('flipV', ($event.target as HTMLInputElement).checked)" />
-              Flip V
+              Balik Vertikal
             </label>
           </div>
         </section>
@@ -84,7 +84,7 @@
         <section class="p-3.5 border-b border-zinc-800 flex flex-col gap-2.5">
           <h3 class="text-[10px] font-bold font-mono tracking-wider uppercase text-zinc-400">Teks</h3>
           <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
-            <span>Konten</span>
+            <span>Isi Teks</span>
             <textarea
               :value="el.text"
               rows="2"
@@ -113,17 +113,17 @@
               <input type="color" :value="colorToHex(el.color)" class="w-full h-8 rounded-lg bg-zinc-950 border border-zinc-800 cursor-pointer" @input="update('color', ($event.target as HTMLInputElement).value)" />
             </label>
             <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
-              <span>Berat</span>
+              <span>Ketebalan</span>
               <select :value="el.fontWeight" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs outline-none focus:border-amber-500" @change="update('fontWeight', ($event.target as HTMLSelectElement).value)">
                 <option value="300">Tipis</option>
-                <option value="400">Normal</option>
+                <option value="400">Reguler</option>
                 <option value="600">Semibold</option>
-                <option value="700">Bold</option>
-                <option value="800">Black</option>
+                <option value="700">Tebal</option>
+                <option value="800">Ekstra Tebal</option>
               </select>
             </label>
             <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
-              <span>Align</span>
+              <span>Perataan</span>
               <select :value="el.textAlign" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs outline-none focus:border-amber-500" @change="update('textAlign', ($event.target as HTMLSelectElement).value)">
                 <option value="left">Kiri</option>
                 <option value="center">Tengah</option>
@@ -131,7 +131,7 @@
               </select>
             </label>
             <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400 col-span-2">
-              <span>Spasi huruf</span>
+              <span>Spasi Huruf</span>
               <input type="number" :value="el.letterSpacing" step="0.5" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs outline-none focus:border-amber-500" @change="update('letterSpacing', +($event.target as HTMLInputElement).value)" />
             </label>
           </div>
@@ -141,22 +141,22 @@
       <!-- Shape-specific -->
       <template v-if="el.type === 'shape'">
         <section class="p-3.5 border-b border-zinc-800 flex flex-col gap-2.5">
-          <h3 class="text-[10px] font-bold font-mono tracking-wider uppercase text-zinc-400">Shape</h3>
+          <h3 class="text-[10px] font-bold font-mono tracking-wider uppercase text-zinc-400">Bentuk</h3>
           <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
             <span>Bentuk</span>
             <select :value="el.shape" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs outline-none focus:border-amber-500" @change="update('shape', ($event.target as HTMLSelectElement).value)">
-              <option value="rect">Kotak</option>
+              <option value="rect">Persegi</option>
               <option value="ellipse">Elips</option>
               <option value="line">Garis</option>
             </select>
           </label>
           <div class="grid grid-cols-2 gap-2">
             <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
-              <span>Fill</span>
+              <span>Warna</span>
               <input type="color" :value="colorToHex(el.fill)" class="w-full h-8 rounded-lg bg-zinc-950 border border-zinc-800 cursor-pointer" @input="update('fill', ($event.target as HTMLInputElement).value)" />
             </label>
             <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
-              <span>Border Radius</span>
+              <span>Radius Sudut</span>
               <input type="number" :value="el.borderRadius" min="0" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs outline-none focus:border-amber-500" @change="update('borderRadius', +($event.target as HTMLInputElement).value)" />
             </label>
           </div>
@@ -179,11 +179,13 @@
 
       <!-- Actions -->
       <section class="p-3.5 flex items-center gap-2">
-        <button class="flex-1 py-2 px-3 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all active:scale-95" @click="$emit('duplicate', el.id)">
-          ⊕ Duplikat
+        <button class="flex-1 py-2 px-3 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all active:scale-95 flex items-center justify-center gap-1.5" @click="$emit('duplicate', el.id)">
+          <Icon name="lucide:copy" class="w-3.5 h-3.5" />
+          <span>Duplikat</span>
         </button>
-        <button class="py-2 px-3 rounded-xl border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 text-xs font-semibold transition-all active:scale-95" @click="$emit('delete', el.id)">
-          ✕ Hapus
+        <button class="py-2 px-3 rounded-xl border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 text-xs font-semibold transition-all active:scale-95 flex items-center justify-center gap-1.5" @click="$emit('delete', el.id)">
+          <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
+          <span>Hapus</span>
         </button>
       </section>
     </template>
@@ -205,7 +207,7 @@ const emit = defineEmits<{
 
 const typeName = computed(() => {
   const map: Record<string, string> = {
-    photo: '📷 Foto', text: '✍️ Teks', image: '🖼 Gambar', shape: '⬜ Shape',
+    photo: '📷 Foto', text: '✍️ Teks', image: '🖼 Gambar', shape: '⬜ Bentuk',
   }
   return props.el ? (map[props.el.type] ?? props.el.type) : ''
 })

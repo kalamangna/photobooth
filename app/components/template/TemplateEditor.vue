@@ -23,13 +23,17 @@
       </div>
 
       <div class="flex items-center gap-2">
+        <span v-if="saveFeedback" class="text-xs font-bold text-emerald-400 mr-1">
+          {{ saveFeedback }}
+        </span>
         <button id="btn-export" class="px-3.5 py-1.5 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95" @click="exportOutput">
           <Icon name="lucide:download" class="w-3.5 h-3.5" />
-          <span>Export</span>
+          <span>Ekspor</span>
         </button>
-        <button id="btn-save-template" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all active:scale-95" @click="save">
-          <Icon name="lucide:save" class="w-3.5 h-3.5" />
-          <span>Simpan</span>
+        <button id="btn-save-template" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all active:scale-95 disabled:opacity-50" :disabled="isSaving" @click="save">
+          <Icon v-if="isSaving" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
+          <Icon v-else name="lucide:save" class="w-3.5 h-3.5" />
+          <span>{{ isSaving ? 'Menyimpan…' : 'Simpan' }}</span>
         </button>
       </div>
     </header>
@@ -84,10 +88,10 @@
 
         <!-- Layer actions for selected -->
         <div v-if="templateStore.selected" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-zinc-900/90 border border-zinc-800 p-1.5 rounded-2xl shadow-xl backdrop-blur-md">
-          <button class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium" @click="templateStore.moveLayer(templateStore.selected!, 'top')">↑↑ Atas</button>
-          <button class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium" @click="templateStore.moveLayer(templateStore.selected!, 'up')">↑ Naik</button>
-          <button class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium" @click="templateStore.moveLayer(templateStore.selected!, 'down')">↓ Turun</button>
-          <button class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium" @click="templateStore.moveLayer(templateStore.selected!, 'bottom')">↓↓ Bawah</button>
+          <button class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium" @click="templateStore.moveLayer(templateStore.selected!, 'top')">Teratas</button>
+          <button class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium" @click="templateStore.moveLayer(templateStore.selected!, 'up')">Naik</button>
+          <button class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium" @click="templateStore.moveLayer(templateStore.selected!, 'down')">Turun</button>
+          <button class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium" @click="templateStore.moveLayer(templateStore.selected!, 'bottom')">Terbawah</button>
         </div>
       </main>
 
@@ -235,7 +239,7 @@ function handleAddElement(type: string) {
   if (type === 'photo') {
     el = makePhotoElement({ x: cx - 200, y: cy - 150, width: 400, height: 300, slot: 0 })
   } else if (type === 'text') {
-    el = makeTextElement({ x: cx - 150, y: cy - 30, width: 300, height: 60, text: 'Teks baru' })
+    el = makeTextElement({ x: cx - 150, y: cy - 30, width: 300, height: 60, text: 'Teks Baru' })
   } else {
     el = makeShapeElement({ x: cx - 100, y: cy - 2, width: 200, height: 4 })
   }
@@ -270,7 +274,18 @@ async function exportOutput() {
 }
 
 // ─── Save ─────────────────────────────────────────────────────
+const isSaving     = ref(false)
+const saveFeedback = ref('')
+
 async function save() {
-  await templateStore.saveTemplate()
+  isSaving.value = true
+  saveFeedback.value = ''
+  try {
+    await templateStore.saveTemplate()
+    saveFeedback.value = '✓ Tersimpan'
+    setTimeout(() => { saveFeedback.value = '' }, 2500)
+  } finally {
+    isSaving.value = false
+  }
 }
 </script>

@@ -53,7 +53,7 @@
         @click="downloadPhoto"
       >
         <Icon name="lucide:download" class="w-5 h-5" />
-        <span>{{ downloadStatus || 'Unduh Foto' }}</span>
+        <span>{{ downloadStatus || 'Download Foto' }}</span>
       </button>
 
       <button
@@ -76,8 +76,8 @@ import { sessionsDB } from '~/services/db'
 definePageMeta({ layout: 'default' })
 
 useSeoMeta({
-  title: 'Unduh Foto — RD Photobooth',
-  description: 'Unduh softfile foto photobooth Anda dalam resolusi HD.',
+  title: 'Download Foto — RD Photobooth',
+  description: 'Download softfile foto photobooth Anda dalam resolusi HD.',
 })
 
 const route          = useRoute()
@@ -135,7 +135,7 @@ function downloadPhoto() {
   link.click()
   document.body.removeChild(link)
 
-  downloadStatus.value = '✓ Foto Berhasil Diunduh!'
+  downloadStatus.value = '✓ Foto Berhasil Didownload!'
   setTimeout(() => {
     downloadStatus.value = ''
   }, 3000)

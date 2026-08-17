@@ -1,275 +1,173 @@
 <template>
-  <div class="max-w-5xl mx-auto flex flex-col gap-8 pb-12 select-none text-zinc-100">
+  <div class="flex flex-col gap-6 sm:gap-8 pb-16 select-none text-zinc-100 max-w-7xl mx-auto">
 
-    <!-- ── Header & Live Status ──────────────────────────────────── -->
-    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-zinc-800/80 pb-6">
-      <div class="flex flex-col gap-1">
-        <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-zinc-100">Panel Operator</h1>
-        <p class="text-xs text-zinc-500">Pengaturan dan kontrol kiosk.</p>
-      </div>
-
-      <!-- Stat -->
-      <div class="text-right shrink-0">
-        <span class="text-3xl font-black font-mono text-zinc-100">{{ todayCount }}</span>
-        <p class="text-[11px] text-zinc-500 font-mono">sesi hari ini</p>
-      </div>
+    <!-- ── Top Header ──────────────────────────────────────────── -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+      <h1 class="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">Dashboard</h1>
     </div>
 
-    <!-- ── Remote Kiosk Control & Quick Actions ───────────────────── -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- ── Live Booth Control Banner ────────────────────────────── -->
+    <div class="p-5 sm:p-6 bg-zinc-900/90 border border-zinc-800 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-lg relative overflow-hidden">
+      <!-- Ambient corner glow -->
+      <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <!-- Reset Kiosk -->
-      <div class="md:col-span-1 p-5 sm:p-6 rounded-3xl bg-zinc-900 border border-zinc-800 flex flex-col justify-between gap-4">
-        <div class="flex flex-col gap-2">
-          <div class="flex items-center justify-between">
-            <span class="font-mono text-[10px] font-bold uppercase tracking-widest text-zinc-500">Kontrol Kiosk</span>
-            <span v-if="remoteFeedback" class="text-xs font-semibold text-emerald-400">{{ remoteFeedback }}</span>
-          </div>
-          <h2 class="text-base font-bold text-zinc-100">Reset Tablet</h2>
-          <p class="text-xs text-zinc-500 leading-relaxed">
-            Kembalikan layar ke beranda untuk sesi berikutnya.
-          </p>
+      <div class="flex items-start gap-4">
+        <div class="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
+          <Icon name="lucide:party-popper" class="w-5 h-5" />
         </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-mono font-semibold tracking-wider uppercase text-amber-400">Acara Aktif</span>
+          <h2 class="text-lg font-bold text-zinc-100">
+            {{ activeEventName || 'RD Photobooth' }}
+          </h2>
+        </div>
+      </div>
+
+      <!-- Quick Reset & Action -->
+      <div class="flex items-center gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-zinc-800/80">
+        <Transition
+          enter-active-class="transition-opacity duration-150"
+          enter-from-class="opacity-0"
+          leave-active-class="transition-opacity duration-100"
+          leave-to-class="opacity-0"
+        >
+          <span v-if="remoteFeedback" class="text-xs font-semibold" :class="remoteFeedback.startsWith('✓') ? 'text-emerald-400' : 'text-rose-400'">
+            {{ remoteFeedback }}
+          </span>
+        </Transition>
 
         <button
           id="btn-remote-reset"
-          class="w-full py-3 px-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-sm transition-all duration-150 active:scale-[0.97] flex items-center justify-center gap-2 disabled:opacity-40 shadow-[0_4px_16px_rgba(245,158,11,0.15)]"
+          class="py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold text-sm shadow-md shadow-amber-500/20 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-40"
           :disabled="isResetting"
           @click="remoteResetTablet"
         >
           <Icon name="lucide:refresh-cw" class="w-4 h-4" :class="isResetting ? 'animate-spin' : ''" />
-          <span>{{ isResetting ? 'Mengirim…' : 'Reset ke Beranda' }}</span>
+          <span>{{ isResetting ? 'Mengirim…' : 'Reset Layar Booth' }}</span>
         </button>
       </div>
+    </div>
 
-      <!-- Quick Navigation: Galeri Foto -->
-      <NuxtLink
-        to="/gallery"
-        class="group p-5 sm:p-6 rounded-3xl bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 flex flex-col justify-between gap-4 transition-all shadow-sm active:scale-[0.99]"
-      >
-        <div class="flex flex-col gap-2">
-          <div class="w-10 h-10 rounded-2xl bg-zinc-800 group-hover:bg-amber-500/10 border border-zinc-700/60 group-hover:border-amber-500/30 flex items-center justify-center text-amber-400 transition-colors">
-            <Icon name="lucide:image" class="w-5 h-5" />
-          </div>
-          <h2 class="text-lg font-bold text-zinc-100 group-hover:text-amber-400 transition-colors">Galeri Sesi</h2>
-          <p class="text-xs text-zinc-400 leading-relaxed">
-            Lihat riwayat foto, unduh softfile, dan kirim perintah cetak ulang.
-          </p>
+    <!-- ── Key Metrics Cards ────────────────────────────────────── -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col gap-2">
+        <div class="flex items-center justify-between text-zinc-400">
+          <span class="text-sm font-medium">Sesi Hari Ini</span>
+          <Icon name="lucide:camera" class="w-4 h-4 text-amber-400" />
         </div>
-
-        <div class="flex items-center gap-1.5 text-xs font-bold text-amber-400 pt-2">
-          <span>Buka Galeri ({{ sessionStore.history.length }})</span>
-          <Icon name="lucide:arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1" />
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl sm:text-3xl font-bold font-mono text-zinc-100">{{ todaySessions.length }}</span>
+          <span class="text-xs text-zinc-500">sesi</span>
         </div>
-      </NuxtLink>
-
-      <!-- Quick Navigation: Template Manager -->
-      <NuxtLink
-        to="/admin/templates"
-        class="group p-5 sm:p-6 rounded-3xl bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 flex flex-col justify-between gap-4 transition-all shadow-sm active:scale-[0.99]"
-      >
-        <div class="flex flex-col gap-2">
-          <div class="w-10 h-10 rounded-2xl bg-zinc-800 group-hover:bg-amber-500/10 border border-zinc-700/60 group-hover:border-amber-500/30 flex items-center justify-center text-amber-400 transition-colors">
-            <Icon name="lucide:layout" class="w-5 h-5" />
-          </div>
-          <h2 class="text-lg font-bold text-zinc-100 group-hover:text-amber-400 transition-colors">Template Manager</h2>
-          <p class="text-xs text-zinc-400 leading-relaxed">
-            Kelola desain bingkai strip 2×6, grid 4×6, dan template kustom.
-          </p>
-        </div>
-
-        <div class="flex items-center gap-1.5 text-xs font-bold text-amber-400 pt-2">
-          <span>Kelola Template</span>
-          <Icon name="lucide:arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1" />
-        </div>
-      </NuxtLink>
-
-    </section>
-
-    <!-- ── Event & Booth Configuration Form ──────────────────────── -->
-    <section class="flex flex-col gap-4 bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-xl">
-      <div class="flex flex-col gap-1 border-b border-zinc-800/80 pb-4">
-        <h2 class="text-lg font-bold text-zinc-100">Pengaturan Acara & Stan</h2>
-        <p class="text-xs text-zinc-400">
-          Perubahan otomatis disinkronkan langsung ke layar tablet booth.
-        </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-
-        <!-- Event Name -->
-        <div class="flex flex-col gap-2 md:col-span-2">
-          <label class="text-xs font-bold text-zinc-200" for="setting-event-name">
-            Nama Acara
-          </label>
-          <input
-            id="setting-event-name"
-            v-model="eventName"
-            type="text"
-            class="w-full px-4 py-3.5 rounded-2xl bg-zinc-950 border border-zinc-800 focus:border-amber-500 text-zinc-100 text-sm sm:text-base outline-none transition-colors"
-            placeholder="cth. Wedding of Sarah & Dimas"
-            maxlength="60"
-          />
-          <span class="text-[11px] text-zinc-400">
-            Ditampilkan di layar utama tablet dan metadata foto.
-          </span>
+      <div class="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col gap-2">
+        <div class="flex items-center justify-between text-zinc-400">
+          <span class="text-sm font-medium">Total Foto Diambil</span>
+          <Icon name="lucide:images" class="w-4 h-4 text-amber-400" />
         </div>
-
-        <!-- Countdown Selector -->
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-bold text-zinc-200">
-            Hitung Mundur
-          </label>
-          <div class="grid grid-cols-2 gap-2">
-            <button
-              v-for="cd in [3, 5]"
-              :key="cd"
-              type="button"
-              class="py-3 rounded-xl border text-xs sm:text-sm font-bold transition-all active:scale-95"
-              :class="countdown === cd
-                ? 'border-amber-500 bg-amber-500/15 text-amber-400 shadow-sm'
-                : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'"
-              @click="countdown = cd"
-            >
-              {{ cd }} Detik
-            </button>
-          </div>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl sm:text-3xl font-bold font-mono text-zinc-100">{{ totalShotsToday }}</span>
+          <span class="text-xs text-zinc-500">foto</span>
         </div>
-
-        <!-- Default Total Shots -->
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-bold text-zinc-200">
-            Jumlah Foto Default
-          </label>
-          <div class="grid grid-cols-4 gap-2">
-            <button
-              v-for="s in [1, 2, 3, 4]"
-              :key="s"
-              type="button"
-              class="py-3 rounded-xl border text-xs sm:text-sm font-bold transition-all active:scale-95"
-              :class="defaultShots === s
-                ? 'border-amber-500 bg-amber-500/15 text-amber-400 shadow-sm'
-                : 'border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'"
-              @click="defaultShots = s"
-            >
-              {{ s }} Foto
-            </button>
-          </div>
-        </div>
-
-        <!-- Admin PIN -->
-        <div class="flex flex-col gap-2 md:col-span-2">
-          <label class="text-xs font-bold text-zinc-200" for="setting-pin">
-            PIN Operator
-          </label>
-          <div class="relative max-w-xs">
-            <Icon name="lucide:lock" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-            <input
-              id="setting-pin"
-              v-model="adminPin"
-              type="password"
-              inputmode="numeric"
-              maxlength="6"
-              class="w-full pl-10 pr-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 focus:border-amber-500 text-zinc-100 font-mono text-sm outline-none transition-colors"
-              placeholder="123456"
-            />
-          </div>
-          <span class="text-[11px] text-zinc-400">PIN 6 digit untuk membuka panel operator.</span>
-        </div>
-
       </div>
 
-      <!-- Save Button Footer -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-zinc-800/80">
-        <span v-if="saveFeedback" class="text-xs sm:text-sm font-bold text-emerald-400">
-          {{ saveFeedback }}
-        </span>
-        <span v-else />
+      <div v-if="auth.isAdmin.value" class="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col gap-2">
+        <div class="flex items-center justify-between text-zinc-400">
+          <span class="text-sm font-medium">Total Riwayat Sesi</span>
+          <Icon name="lucide:archive" class="w-4 h-4 text-amber-400" />
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span class="text-2xl sm:text-3xl font-bold font-mono text-zinc-100">{{ sessionStore.history.length }}</span>
+          <span class="text-xs text-zinc-500">keseluruhan</span>
+        </div>
+      </div>
+    </div>
 
-        <button
-          id="btn-save-settings"
-          class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black text-sm sm:text-base shadow-lg shadow-amber-500/20 transition-all active:scale-95 min-h-[48px] disabled:opacity-50"
-          :disabled="isSaving"
-          @click="saveSettings"
+    <!-- ── Device Management Status (Admin only) ────────────────── -->
+    <section v-if="auth.isAdmin.value" class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xs font-bold font-mono tracking-wider uppercase text-zinc-400">
+          Status Perangkat
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div
+          v-for="device in devices"
+          :key="device.label"
+          class="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col gap-2.5"
         >
-          {{ isSaving ? 'Menyimpan…' : 'Simpan Pengaturan' }}
-        </button>
+          <div class="flex items-center justify-between">
+            <div class="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300">
+              <Icon :name="device.icon" class="w-4 h-4" />
+            </div>
+            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-0.5 rounded-md">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              {{ device.status }}
+            </span>
+          </div>
+
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold text-zinc-100">{{ device.label }}</span>
+            <span class="text-xs text-zinc-400">{{ device.detail }}</span>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- ── Live Recent Sessions Feed ─────────────────────────────── -->
+    <!-- ── Recent Sessions ────────────────────────────────────── -->
     <section class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <h2 class="text-sm font-mono uppercase tracking-widest text-amber-500 font-bold">Sesi Foto Terbaru</h2>
-          <span class="text-xs text-zinc-400">({{ sessionStore.history.length }} Total)</span>
-        </div>
-
-        <NuxtLink to="/gallery" class="text-xs font-bold text-zinc-400 hover:text-amber-400 transition-colors">
-          Lihat Semua di Galeri →
+        <h2 class="text-xs font-bold font-mono tracking-wider uppercase text-zinc-400">
+          Sesi Terbaru
+        </h2>
+        <NuxtLink to="/gallery" class="text-xs font-semibold text-amber-400 hover:underline flex items-center gap-1">
+          <span>Lihat Semua ({{ sessionStore.history.length }})</span>
+          <Icon name="lucide:chevron-right" class="w-3.5 h-3.5" />
         </NuxtLink>
       </div>
 
-      <div v-if="sessionStore.history.length === 0" class="p-8 text-center bg-zinc-900/50 rounded-3xl border border-zinc-800 text-zinc-400 text-xs sm:text-sm">
-        Belum ada sesi foto hari ini.
+      <!-- Empty State -->
+      <div v-if="sessionStore.history.length === 0" class="p-10 text-center bg-zinc-900/40 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center gap-2 text-zinc-500 text-sm">
+        <Icon name="lucide:image" class="w-6 h-6 text-zinc-600" />
+        <p>Belum ada sesi foto yang tersimpan.</p>
       </div>
 
+      <!-- Grid Cards -->
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         <div
           v-for="session in sessionStore.history.slice(0, 6)"
           :key="session.id"
-          class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-between gap-3 shadow-sm hover:border-zinc-700 transition-colors"
+          class="flex items-center gap-3.5 p-3.5 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-zinc-700 transition-colors group"
         >
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-12 h-12 rounded-xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 flex items-center justify-center">
-              <img
-                v-if="session.outputUrl"
-                :src="session.outputUrl"
-                class="w-full h-full object-cover"
-                alt=""
-              />
-              <Icon v-else name="lucide:image" class="w-5 h-5 text-zinc-600" />
-            </div>
+          <div class="w-12 h-14 rounded-xl bg-zinc-950 border border-zinc-800 overflow-hidden shrink-0 flex items-center justify-center">
+            <img v-if="session.outputUrl" :src="session.outputUrl" class="w-full h-full object-cover" alt="" />
+            <Icon v-else name="lucide:image" class="w-5 h-5 text-zinc-600" />
+          </div>
 
-            <div class="flex flex-col min-w-0">
-              <span class="font-mono text-xs font-bold text-zinc-200 truncate">
-                {{ session.customerName || session.id }}
-              </span>
-              <span class="text-[10px] text-amber-400 font-medium truncate">
-                {{ session.eventName || 'RD Photobooth' }}
-              </span>
-              <span class="text-[10px] text-zinc-400">
-                {{ formatDate(session.startedAt) }} · {{ session.totalShots }} Foto
-              </span>
-            </div>
+          <div class="flex flex-col min-w-0 flex-1">
+            <span class="font-mono text-sm font-semibold text-zinc-100 truncate">
+              {{ session.id }}
+            </span>
+            <span class="text-xs text-amber-400 font-medium truncate">
+              {{ session.eventName || 'RD Photobooth' }}
+            </span>
+            <span class="text-xs text-zinc-400 mt-0.5">
+              {{ formatDate(session.startedAt) }} · {{ session.totalShots }} Foto
+            </span>
           </div>
 
           <NuxtLink
             to="/gallery"
-            class="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-zinc-100 transition-colors shrink-0"
-            title="Buka di Galeri"
+            class="p-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-amber-400 transition-colors"
+            title="Print"
           >
             <Icon name="lucide:printer" class="w-4 h-4" />
           </NuxtLink>
         </div>
-      </div>
-    </section>
 
-    <!-- ── Danger Zone ──────────────────────────────────────────── -->
-    <section class="p-6 rounded-3xl bg-zinc-950 border border-rose-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <div class="flex flex-col gap-1">
-        <span class="font-mono text-xs font-bold uppercase tracking-wider text-rose-400">Pembersihan Data</span>
-        <p class="text-xs text-zinc-400">
-          Hapus riwayat sesi hari ini dari database lokal dan server.
-        </p>
       </div>
-
-      <button
-        class="py-2.5 px-5 rounded-xl border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold transition-all active:scale-95 shrink-0"
-        @click="confirmClearToday"
-      >
-        Hapus Sesi Hari Ini
-      </button>
     </section>
 
   </div>
@@ -278,101 +176,59 @@
 <script setup lang="ts">
 import { useSessionStore } from '~/stores/session'
 import { settingsDB }      from '~/services/db'
+import { useAuth }         from '~/composables/useAuth'
 
 definePageMeta({ layout: 'admin' })
-
-useSeoMeta({
-  title: 'RD Photobooth — Panel Operator',
-  description: 'Panel kontrol operator photobooth.',
-})
+useSeoMeta({ title: 'Dashboard — Admin' })
 
 const sessionStore = useSessionStore()
+const auth         = useAuth()
 
-// Settings State
-const eventName      = ref('')
-const adminPin       = ref('123456')
-const countdown      = ref(5)
-const defaultShots   = ref(3)
-const isSaving       = ref(false)
-const saveFeedback   = ref('')
-const isResetting    = ref(false)
-const remoteFeedback = ref('')
+const isResetting     = ref(false)
+const remoteFeedback  = ref('')
+const activeEventName = ref('')
 
-const todayCount = computed(() => {
+const devices = [
+  { label: 'Kamera',   icon: 'lucide:camera',   status: 'Aktif', detail: 'Siap mengambil foto' },
+  { label: 'Printer',  icon: 'lucide:printer',  status: 'Siap',  detail: 'Siap print' },
+  { label: 'Database', icon: 'lucide:database', status: 'Aktif', detail: 'Data tersimpan lokal' },
+  { label: 'Layar Booth', icon: 'lucide:monitor', status: 'Online', detail: 'Terhubung ke booth' },
+]
+
+const todaySessions = computed(() => {
   const today = new Date().toISOString().slice(0, 10)
-  return sessionStore.history.filter(s => s.startedAt && s.startedAt.startsWith(today)).length
+  return sessionStore.history.filter(s => s.startedAt?.startsWith(today))
+})
+
+const totalShotsToday = computed(() => {
+  return todaySessions.value.reduce((acc, s) => acc + (s.totalShots || 0), 0)
 })
 
 onMounted(async () => {
+  await auth.loadPins()
   await sessionStore.loadHistory()
 
-  // Load saved settings
-  const savedEvent = (await settingsDB.get<string>('activeEventName')) || (typeof localStorage !== 'undefined' ? localStorage.getItem('photobooth_event_name') : null)
-  const savedPin   = await settingsDB.get<string>('adminPin')
-  const savedCd    = await settingsDB.get<number>('activeCountdown')
-  const savedShots = await settingsDB.get<number>('lastTotalShots')
-
-  if (savedEvent) eventName.value = savedEvent
-  if (savedPin)   adminPin.value = savedPin
-  if (savedCd)    countdown.value = savedCd
-  if (savedShots) defaultShots.value = savedShots
+  activeEventName.value = (await settingsDB.get<string>('activeEventName'))
+    || (typeof localStorage !== 'undefined' ? localStorage.getItem('photobooth_event_name') : '') || ''
 })
 
 async function remoteResetTablet() {
   isResetting.value = true
   remoteFeedback.value = ''
   try {
-    await $fetch('/api/kiosk/command', {
-      method: 'POST',
-      body: { action: 'reset_home' },
-    })
-    remoteFeedback.value = '✓ Layar tablet direset ke beranda'
-    setTimeout(() => { remoteFeedback.value = '' }, 3500)
+    await $fetch('/api/kiosk/command', { method: 'POST', body: { action: 'reset_home' } })
+    remoteFeedback.value = '✓ Berhasil'
+    setTimeout(() => { remoteFeedback.value = '' }, 2500)
   } catch {
-    remoteFeedback.value = '✕ Gagal mengirim sinyal reset'
-    setTimeout(() => { remoteFeedback.value = '' }, 3500)
+    remoteFeedback.value = '✕ Gagal'
+    setTimeout(() => { remoteFeedback.value = '' }, 2500)
   } finally {
     isResetting.value = false
   }
 }
 
-async function saveSettings() {
-  isSaving.value = true
-  saveFeedback.value = ''
-
-  try {
-    const trimmed = eventName.value.trim()
-    await settingsDB.set('activeEventName', trimmed)
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('photobooth_event_name', trimmed)
-    }
-
-    if (adminPin.value.trim().length === 6) {
-      await settingsDB.set('adminPin', adminPin.value.trim())
-    }
-
-    await settingsDB.set('activeCountdown', countdown.value)
-    await settingsDB.set('lastTotalShots', defaultShots.value)
-
-    saveFeedback.value = '✓ Pengaturan berhasil disimpan!'
-    setTimeout(() => { saveFeedback.value = '' }, 3500)
-  } finally {
-    isSaving.value = false
-  }
-}
-
-async function confirmClearToday() {
-  if (confirm(`Hapus seluruh sesi foto hari ini (${todayCount.value} sesi)? Tindakan ini tidak dapat dibatalkan.`)) {
-    await sessionStore.clearTodaySessions()
-    alert('Seluruh sesi hari ini berhasil dihapus.')
-  }
-}
-
 function formatDate(iso: string): string {
   if (!iso) return ''
-  return new Date(iso).toLocaleTimeString('id-ID', {
-    hour:   '2-digit',
-    minute: '2-digit',
-  })
+  return new Date(iso).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 }
 </script>

@@ -1,9 +1,28 @@
 <template>
   <div class="h-full select-none text-zinc-100">
 
+    <!-- ── Role Restriction Alert for Operators ─────────────── -->
+    <div v-if="!auth.isAdmin.value" class="max-w-xl mx-auto p-8 bg-zinc-900 border border-zinc-800 rounded-3xl flex flex-col items-center text-center gap-4 shadow-xl my-8">
+      <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+        <Icon name="lucide:layout" class="w-7 h-7" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <h2 class="text-lg font-bold text-zinc-100">Kelola Template Khusus Admin</h2>
+        <p class="text-xs text-zinc-400">
+          Pengaturan tata letak dan desain bingkai foto hanya dapat diubah oleh akun Admin untuk menjaga konsistensi template saat event berlangsung.
+        </p>
+      </div>
+      <NuxtLink
+        to="/admin"
+        class="px-5 py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition-all active:scale-95"
+      >
+        Kembali ke Dashboard
+      </NuxtLink>
+    </div>
+
     <!-- ── Template Editor Mode ──────────────────────────────────── -->
     <TemplateEditor
-      v-if="templateStore.hasActive"
+      v-else-if="templateStore.hasActive"
       :photos="demoPhotos"
       @back="templateStore.clearActive()"
       @exported="onExported"
@@ -11,24 +30,14 @@
 
     <!-- ── Template Manager List View ────────────────────────────── -->
     <div v-else class="max-w-7xl mx-auto flex flex-col gap-6 sm:gap-8 pb-12">
-      
+
       <!-- Top Title Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-6">
-        <div class="flex flex-col gap-1">
-          <div class="flex items-center gap-2">
-            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-zinc-100">Template Manager</h1>
-            <span class="font-mono text-xs font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
-              {{ templateStore.templates.length }} Desain
-            </span>
-          </div>
-          <p class="text-xs text-zinc-400">
-            Kelola tata letak dan desain bingkai cetak strip 2×6 atau grid 4×6.
-          </p>
-        </div>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-zinc-100">Kelola Template</h1>
 
         <button
           id="btn-new-template"
-          class="self-start sm:self-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition-all active:scale-95 flex items-center gap-2 min-h-[42px]"
+          class="self-start sm:self-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-sm shadow-md shadow-amber-500/20 transition-all active:scale-95 flex items-center gap-2"
           @click="createNew"
         >
           <Icon name="lucide:plus" class="w-4 h-4 stroke-[3]" />
@@ -41,7 +50,7 @@
         <button
           v-for="cat in categories"
           :key="cat.key"
-          class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap active:scale-95 min-h-[38px] border"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap active:scale-95 min-h-[34px] border"
           :class="activeCategory === cat.key
             ? 'border-amber-500 bg-amber-500/15 text-amber-400 shadow-sm'
             : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:bg-zinc-850 hover:text-zinc-200'"
@@ -58,9 +67,9 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="templateStore.isLoading" class="flex flex-col items-center justify-center py-20 gap-3 text-zinc-400 text-xs">
+      <div v-if="templateStore.isLoading" class="flex flex-col items-center justify-center py-20 gap-3 text-zinc-400 text-sm">
         <div class="w-8 h-8 border-4 border-zinc-700 border-t-amber-400 rounded-full animate-spin" />
-        <p>Memuat daftar template…</p>
+        <p class="text-xs">Memuat template…</p>
       </div>
 
       <!-- Empty State -->
@@ -68,9 +77,9 @@
         <div class="w-14 h-14 rounded-2xl bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center text-zinc-500">
           <Icon name="lucide:layout" class="w-7 h-7" />
         </div>
-        <h2 class="text-base font-bold text-zinc-200">Tidak Ada Template</h2>
+        <h2 class="text-base font-bold text-zinc-200">Belum Ada Template</h2>
         <p class="text-xs text-zinc-400 max-w-sm">
-          Belum ada template pada kategori ini. Anda dapat membuat desain template baru.
+          Belum ada template pada kategori ini.
         </p>
       </div>
 
@@ -79,7 +88,7 @@
         <div
           v-for="tpl in filteredTemplates"
           :key="tpl.id"
-          class="p-4 rounded-3xl bg-zinc-900 border border-zinc-800 flex flex-col gap-3.5 shadow-lg hover:border-zinc-700 transition-colors"
+          class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col gap-3.5 shadow-lg hover:border-zinc-700 transition-colors"
         >
           <!-- Top Tags -->
           <div class="flex items-center justify-between">
@@ -104,23 +113,23 @@
           <!-- Info -->
           <div class="flex flex-col gap-0.5">
             <h3 class="text-sm font-bold text-zinc-100 truncate">{{ tpl.name }}</h3>
-            <p class="text-xs text-zinc-400 line-clamp-1">{{ tpl.description || 'Desain bingkai photobooth' }}</p>
+            <p class="text-xs text-zinc-400 line-clamp-1">{{ tpl.description || 'Tanpa deskripsi' }}</p>
             <span class="font-mono text-[10px] text-zinc-400 mt-1">{{ tpl.canvas.width }} × {{ tpl.canvas.height }} px · {{ tpl.canvas.dpi || 300 }} DPI</span>
           </div>
 
           <!-- Actions -->
           <div class="flex items-center gap-2 pt-2 border-t border-zinc-800/80">
             <button
-              class="flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 min-h-[38px]"
+              class="flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 min-h-[36px]"
               @click="templateStore.setActive(tpl)"
             >
               <Icon name="lucide:edit-3" class="w-3.5 h-3.5" />
-              <span>Sunting</span>
+              <span>Edit</span>
             </button>
             
             <button
-              class="py-2 px-3 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all active:scale-95 min-h-[38px]"
-              title="Duplikat Template"
+              class="py-2 px-3 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all active:scale-95 min-h-[36px]"
+              title="Duplikat"
               @click="duplicateTemplate(tpl)"
             >
               <Icon name="lucide:copy" class="w-3.5 h-3.5" />
@@ -128,8 +137,8 @@
 
             <button
               v-if="!tpl.id.startsWith('preset-')"
-              class="py-2 px-3 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold transition-all active:scale-95 min-h-[38px]"
-              title="Hapus Template"
+              class="py-2 px-3 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold transition-all active:scale-95 min-h-[36px]"
+              title="Hapus"
               @click="confirmDelete(tpl)"
             >
               <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
@@ -166,13 +175,13 @@
           </div>
           <div class="flex items-center gap-2 pt-2">
             <button
-              class="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition-all active:scale-95"
+              class="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all active:scale-95"
               @click="templateToDelete = null"
             >
               Batal
             </button>
             <button
-              class="flex-1 py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-zinc-950 text-xs font-black transition-all active:scale-95 shadow-md shadow-rose-500/20"
+              class="flex-1 py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-zinc-950 text-xs font-bold transition-all active:scale-95 shadow-md shadow-rose-500/20"
               @click="executeDelete"
             >
               Hapus
@@ -192,14 +201,16 @@ import {
   makeTextElement,
   type PhotoTemplate,
 } from '~/types/template'
+import { useAuth } from '~/composables/useAuth'
 
 definePageMeta({ layout: 'admin' })
 
 useSeoMeta({
-  title: 'RD Photobooth — Template Manager',
+  title: 'RD Photobooth — Kelola Template',
   description: 'Kelola desain dan bingkai foto photobooth.',
 })
 
+const auth             = useAuth()
 const templateStore    = useTemplateStore()
 const activeCategory   = ref('all')
 const templateToDelete = ref<PhotoTemplate | null>(null)
@@ -209,7 +220,7 @@ const categories = [
   { key: 'strip',    label: 'Strip 2×6' },
   { key: 'grid',     label: 'Grid 4×6' },
   { key: 'polaroid', label: 'Polaroid' },
-  { key: 'minimal',  label: 'Minimalist' },
+  { key: 'minimal',  label: 'Minimalis' },
 ]
 
 // Demo photos for editor preview
@@ -239,7 +250,7 @@ function createNew() {
   const tpl: PhotoTemplate = {
     id,
     name:        'Template Baru',
-    description: 'Desain template kustom baru',
+    description: 'Template kustom',
     category:    'strip',
     totalSlots:  3,
     canvas: { width: 600, height: 1800, background: '#111111', dpi: 300 },

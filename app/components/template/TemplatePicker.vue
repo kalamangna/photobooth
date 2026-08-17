@@ -197,7 +197,7 @@ const availableFilters = computed(() => [
   { key: 'strip',    label: 'Strip 2×6' },
   { key: 'grid',     label: 'Grid 4×6' },
   { key: 'polaroid', label: 'Polaroid' },
-  { key: 'minimal',  label: 'Minimalist' },
+  { key: 'minimal',  label: 'Minimalis' },
 ])
 
 function getCategoryCount(catKey: string): number {

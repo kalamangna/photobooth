@@ -91,7 +91,7 @@
 import { useSessionStore } from '~/stores/session'
 import { settingsDB }      from '~/services/db'
 
-definePageMeta({ layout: 'default' })
+definePageMeta({ layout: 'default', ssr: false })
 useSeoMeta({ title: 'Photobooth — Atur Sesi' })
 
 const router       = useRouter()
@@ -129,9 +129,20 @@ onMounted(async () => {
 })
 
 async function proceed() {
-  await sessionStore.startSession({
-    totalShots: totalShots.value,
-  })
+  if (sessionStore.current && sessionStore.sessionState === 'READY') {
+    // Reuse sesi yang ada — hanya update totalShots jika berubah
+    if (sessionStore.current.totalShots !== totalShots.value) {
+      sessionStore.current.totalShots = totalShots.value
+      sessionStore.current.currentShot = 0
+      sessionStore.current.photos = Array.from({ length: totalShots.value }, (_, i) => ({
+        index: i,
+        dataUrl: null,
+        capturedAt: null,
+      }))
+    }
+  } else {
+    await sessionStore.startSession({ totalShots: totalShots.value })
+  }
 
   await router.push('/session')
 }
