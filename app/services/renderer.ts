@@ -33,17 +33,32 @@ export interface RenderResult {
   height:    number
 }
 
-// Image cache to avoid reloading assets
+// LRU Image cache — max 60 entries to prevent memory leaks during long events
+const IMAGE_CACHE_MAX = 60
 const imageCache = new Map<string, HTMLImageElement>()
 
 function loadImage(src: string): Promise<HTMLImageElement> {
-  if (imageCache.has(src)) return Promise.resolve(imageCache.get(src)!)
+  if (imageCache.has(src)) {
+    // Move to end (most recently used)
+    const img = imageCache.get(src)!
+    imageCache.delete(src)
+    imageCache.set(src, img)
+    return Promise.resolve(img)
+  }
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
-    img.onload  = () => { imageCache.set(src, img); resolve(img) }
+    img.onload = () => {
+      // Evict oldest entry if at capacity
+      if (imageCache.size >= IMAGE_CACHE_MAX) {
+        const oldestKey = imageCache.keys().next().value
+        imageCache.delete(oldestKey)
+      }
+      imageCache.set(src, img)
+      resolve(img)
+    }
     img.onerror = reject
-    img.src     = src
+    img.src = src
   })
 }
 
@@ -211,32 +226,65 @@ function renderText(
     el.name?.toLowerCase().includes('tanggal')
   )
 
-  if (hasCustomEvent) {
-    if (displayText.includes('{{eventName}}')) {
-      displayText = displayText.replace(/\{\{eventName\}\}/g, eventName!.trim())
-    } else if (isDateElement) {
-      const datePart = eventDate?.trim() || el.text
-      displayText = `RD Photobooth · ${datePart}`
-    } else {
-      displayText = eventName!.trim()
-    }
-  } else {
-    if (eventDate && eventDate.trim()) {
-      if (displayText.includes('{{eventDate}}') || isDateElement) {
-        displayText = eventDate.trim()
-      }
-    }
+  const isBrandElement = Boolean(
+    el.id === 'txt-brand' ||
+    el.id === 'txt-byline' ||
+    el.id === 'txt-watermark' ||
+    el.name?.toLowerCase().includes('brand') ||
+    el.name?.toLowerCase().includes('watermark') ||
+    el.name?.toLowerCase().includes('footer')
+  )
+
+  const isEventElement = Boolean(
+    el.id === 'txt-event' ||
+    el.id === 'txt-title' ||
+    el.id === 'txt-event-name' ||
+    el.id === 'txt-duo' ||
+    el.id === 'txt-note' ||
+    el.name?.toLowerCase().includes('event') ||
+    el.name?.toLowerCase().includes('acara') ||
+    el.name?.toLowerCase().includes('judul') ||
+    el.name?.toLowerCase().includes('title')
+  )
+
+  // 1. Template variable substitutions
+  if (displayText.includes('{{eventName}}') && eventName?.trim()) {
+    displayText = displayText.replace(/\{\{eventName\}\}/g, eventName.trim())
+  }
+  if (displayText.includes('{{eventDate}}') && eventDate?.trim()) {
+    displayText = displayText.replace(/\{\{eventDate\}\}/g, eventDate.trim())
+  }
+  if (displayText.includes('{{date}}') && eventDate?.trim()) {
+    displayText = displayText.replace(/\{\{date\}\}/g, eventDate.trim())
   }
 
+  // 2. Dynamic date binding
+  if (isDateElement && eventDate?.trim() && !el.text.includes('{{')) {
+    displayText = eventDate.trim()
+  }
+
+  // 3. Dynamic event title binding
+  if (hasCustomEvent && isEventElement && !isBrandElement && !el.text.includes('{{')) {
+    displayText = eventName!.trim()
+  }
+
+  // 4. Dedicated branding element always renders RD PHOTOBOOTH
+  if (isBrandElement && !el.text.includes('{{')) {
+    displayText = el.text || 'RD PHOTOBOOTH'
+  }
+
+  drawTextWithSpacing(ctx, displayText, el)
+}
+
+function drawTextWithSpacing(ctx: CanvasRenderingContext2D, text: string, el: TextElement) {
   if (el.letterSpacing !== 0) {
-    // Manual letter spacing
-    const chars   = [...displayText]
-    let advance   = el.textAlign === 'center'
-      ? el.x + el.width / 2 - measureTextWidth(ctx, displayText, el.letterSpacing) / 2
+    const chars = [...text]
+    let advance = el.textAlign === 'center'
+      ? el.x + el.width / 2 - measureTextWidth(ctx, text, el.letterSpacing) / 2
       : el.textAlign === 'right'
-        ? el.x + el.width - el.padding - measureTextWidth(ctx, displayText, el.letterSpacing)
+        ? el.x + el.width - el.padding - measureTextWidth(ctx, text, el.letterSpacing)
         : el.x + el.padding
-    const y       = el.y + el.height / 2
+    const y = el.y + el.height / 2
     ctx.textAlign = 'left'
     for (const ch of chars) {
       ctx.fillText(ch, advance, y)
@@ -248,7 +296,7 @@ function renderText(
       : el.textAlign === 'right'
         ? el.x + el.width - el.padding
         : el.x + el.padding
-    ctx.fillText(displayText, x, el.y + el.height / 2)
+    ctx.fillText(text, x, el.y + el.height / 2)
   }
 }
 
@@ -353,7 +401,7 @@ function computeFit(
   const elemRatio = ew / eh
 
   if (el.fit === 'cover') {
-    // Crop to fill the element area
+    // Crop to fill the element area (align top for portraits to keep faces visible)
     if (imgRatio > elemRatio) {
       const sh = ih
       const sw = ih * elemRatio
@@ -362,7 +410,7 @@ function computeFit(
     } else {
       const sw = iw
       const sh = iw / elemRatio
-      const sy = (ih - sh) / 2
+      const sy = 0 // Align top
       return { sx: 0, sy, sw, sh, dx: el.x, dy: el.y, dw: ew, dh: eh }
     }
   }

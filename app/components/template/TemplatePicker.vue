@@ -26,10 +26,6 @@
             </button>
             <h1 class="text-xl sm:text-2xl font-black text-zinc-100 tracking-tight">Pilih Template</h1>
           </div>
-
-          <span class="font-mono text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full font-bold">
-            {{ targetShots }} Foto
-          </span>
         </header>
 
         <!-- Category & Filter Tabs -->
@@ -100,7 +96,7 @@
               <div class="w-full flex items-center justify-center bg-zinc-900/90 rounded-xl p-2.5 min-h-[160px] sm:min-h-[180px] overflow-hidden">
                 <TemplateCanvasPreview
                   :template="tpl"
-                  :photos="{}"
+                  :photos="dummyPhotos"
                   :event-name="activeEventName"
                   :max-width="getThumbMaxWidth(tpl)"
                   class="transition-transform duration-200 group-hover:scale-105"
@@ -168,7 +164,9 @@
 import { useTemplateStore } from '~/stores/template'
 import { useSessionStore }  from '~/stores/session'
 import { settingsDB }       from '~/services/db'
+import { getDummyPhotos }   from '~/services/dummyPhotos'
 import type { PhotoTemplate } from '~/types/template'
+import TemplateCanvasPreview from '~/components/template/CanvasPreview.vue'
 
 const props = defineProps<{
   shots?: number
@@ -183,8 +181,9 @@ const emit = defineEmits<{
 const templateStore = useTemplateStore()
 const sessionStore  = useSessionStore()
 
-const templates = computed(() => templateStore.templates)
-const targetShots = computed(() => props.shots || sessionStore.totalShots || 3)
+const dummyPhotos     = ref<Record<number, string>>({})
+const templates       = computed(() => templateStore.templates)
+const targetShots     = computed(() => props.shots || sessionStore.totalShots || 3)
 
 const activeCategory  = ref<string>('matched')
 const selected        = ref<string | null>(null)
@@ -197,7 +196,7 @@ const availableFilters = computed(() => [
   { key: 'strip',    label: 'Strip 2×6' },
   { key: 'grid',     label: 'Grid 4×6' },
   { key: 'polaroid', label: 'Polaroid' },
-  { key: 'minimal',  label: 'Minimalis' },
+  { key: 'collage',  label: 'Kolase' },
 ])
 
 function getCategoryCount(catKey: string): number {
@@ -227,6 +226,7 @@ const selectedTemplate = computed(() =>
 )
 
 onMounted(async () => {
+  dummyPhotos.value = getDummyPhotos()
   await templateStore.loadTemplates()
   activeEventName.value = (await settingsDB.get<string>('activeEventName')) ?? ''
 

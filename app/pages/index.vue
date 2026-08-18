@@ -10,12 +10,15 @@
     <!-- Portrait layout -->
     <template v-if="!isLandscape">
       <div class="relative z-10 flex flex-col items-center text-center gap-[clamp(20px,4vh,40px)] max-w-[480px] px-[clamp(24px,6vw,48px)]">
-        <p
-          class="font-mono text-[11px] font-bold tracking-[0.22em] uppercase"
-          :class="hasCustomEvent ? 'text-amber-400' : 'text-zinc-600'"
+        <!-- Event Badge (if set) -->
+        <div
+          v-if="hasCustomEvent"
+          class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 shadow-sm"
         >
-          {{ hasCustomEvent ? activeEventName : 'RD Photobooth' }}
-        </p>
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400" />
+          <span class="text-xs font-semibold text-amber-300">{{ activeEventName }}</span>
+        </div>
+
         <h1 class="text-[clamp(2.75rem,10vmin,5.5rem)] font-black leading-[1.0] text-zinc-100 tracking-[-0.02em]">
           Abadikan<br><span class="text-amber-400">Momenmu</span>
         </h1>
@@ -38,16 +41,17 @@
     <!-- Landscape layout -->
     <template v-else>
       <div class="relative z-10 flex flex-row items-center justify-center gap-[clamp(40px,8vw,100px)] w-full max-w-[900px] px-[clamp(32px,6vw,80px)]">
-        <!-- Left: branding & CTA -->
+        <!-- Left: event badge, headline & CTA -->
         <div class="flex flex-col items-start gap-[clamp(16px,3vh,28px)]">
-          <p
-            class="font-mono text-[11px] font-bold tracking-[0.22em] uppercase cursor-pointer py-1 px-3 rounded-full active:opacity-70 transition-opacity"
-            :class="hasCustomEvent ? 'text-amber-400' : 'text-zinc-600'"
-            title="Klik 4x untuk Akses Operator"
-            @click.stop="onSecretTrigger"
+          <!-- Event Badge (if set) -->
+          <div
+            v-if="hasCustomEvent"
+            class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 shadow-sm"
           >
-            {{ hasCustomEvent ? activeEventName : 'RD Photobooth' }}
-          </p>
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <span class="text-xs font-semibold text-amber-300">{{ activeEventName }}</span>
+          </div>
+
           <h1 class="text-[clamp(2.25rem,7vw,4rem)] font-black leading-[1.05] text-zinc-100 tracking-[-0.02em]">
             Abadikan<br><span class="text-amber-400">Momenmu</span>
           </h1>
@@ -76,10 +80,16 @@
       </div>
     </template>
 
-    <!-- Tap hint -->
-    <p class="absolute bottom-[clamp(16px,3vh,28px)] left-1/2 -translate-x-1/2 text-[11px] text-zinc-700 tracking-[0.08em] whitespace-nowrap pointer-events-none">
-      Ketuk di mana saja untuk memulai
-    </p>
+    <!-- ── Footer: Tap hint & RD Photobooth Branding ───────────── -->
+    <footer class="absolute bottom-[clamp(14px,2.5vh,24px)] left-0 right-0 z-20 flex flex-col items-center justify-center gap-1 text-center pointer-events-none px-4">
+      <p class="text-[11px] text-zinc-600 tracking-[0.08em] whitespace-nowrap">
+        Ketuk di mana saja untuk memulai
+      </p>
+
+      <span class="font-mono text-[10px] font-bold tracking-[0.24em] uppercase text-zinc-600">
+        RD Photobooth
+      </span>
+    </footer>
   </div>
 </template>
 
@@ -155,21 +165,5 @@ async function goStart() {
   if (isStarting.value) return
   isStarting.value = true
   try { await router.push('/setup') } finally { isStarting.value = false }
-}
-
-const secretClickCount = ref(0)
-let secretClickTimer: ReturnType<typeof setTimeout> | null = null
-
-function onSecretTrigger() {
-  secretClickCount.value++
-  if (secretClickTimer) clearTimeout(secretClickTimer)
-  if (secretClickCount.value >= 4) {
-    secretClickCount.value = 0
-    router.push('/admin')
-    return
-  }
-  secretClickTimer = setTimeout(() => {
-    secretClickCount.value = 0
-  }, 1200)
 }
 </script>

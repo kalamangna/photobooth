@@ -211,27 +211,38 @@ export const sessionsDB = {
   },
   get: (id: string) => getByKey(STORES.SESSIONS, id),
   getAll: async () => {
+    const localSessions = await getAll<{ id: string; [key: string]: unknown }>(STORES.SESSIONS).catch(() => [])
     try {
-      const serverSessions = await $fetch<unknown[]>('/api/sessions').catch(() => null)
+      const serverSessions = await $fetch<{ id: string; [key: string]: unknown }[]>('/api/sessions').catch(() => null)
       if (serverSessions && Array.isArray(serverSessions)) {
-        // Sync local IndexedDB with central server list
+        const serverIds = new Set(serverSessions.map(s => s.id))
+
+        // Background sync: push local sessions not yet recorded on server
+        const pendingLocal = localSessions.filter(s => s && s.id && !serverIds.has(s.id))
+        for (const local of pendingLocal) {
+          $fetch('/api/sessions', {
+            method: 'POST',
+            body: local,
+          }).catch(() => {})
+        }
+
+        // Upsert server sessions into local IndexedDB without wiping local state
         try {
           const db = await openDB()
           const tx = db.transaction(STORES.SESSIONS, 'readwrite')
           const store = tx.objectStore(STORES.SESSIONS)
-          store.clear()
           for (const s of serverSessions) {
             store.put(toPlain(s))
           }
         } catch {
-          // Ignore local sync failure
+          // Ignore local storage error
         }
-        return serverSessions
+        return [...serverSessions, ...pendingLocal]
       }
     } catch {
       // Offline fallback
     }
-    return getAll(STORES.SESSIONS)
+    return localSessions
   },
   delete: async (id: string) => {
     await deleteByKey(STORES.SESSIONS, id)

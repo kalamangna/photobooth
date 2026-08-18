@@ -9,6 +9,7 @@ import {
   generatePrintJobId,
 } from '~/types/session'
 import { sessionsDB, printJobsDB, logsDB, settingsDB } from '~/services/db'
+import { printImage } from '~/services/printer'
 
 interface SessionStoreState {
   current: Session | null
@@ -75,8 +76,26 @@ export const useSessionStore = defineStore('session', {
       this.current  = session
       this.error    = null
 
+      await settingsDB.set('activeSessionId', session.id)
       await this._persist()
       await this._log('info', 'session', 'session.started', `New session ${session.id} started for event "${session.eventName}"`)
+    },
+
+    // ─── Recover Active Session (Crash/Restart Recovery) ──────
+    async recoverActiveSession(): Promise<boolean> {
+      try {
+        const activeId = await settingsDB.get<string>('activeSessionId')
+        if (!activeId) return false
+        const session = await sessionsDB.get(activeId) as Session | null
+        if (session && session.state !== 'DONE') {
+          this.current = session
+          await this._log('info', 'session', 'session.recovered', `Recovered active session ${session.id} at state ${session.state}`)
+          return true
+        }
+      } catch (err) {
+        console.warn('[Session] Recovery failed:', err)
+      }
+      return false
     },
 
     // ─── Ready State ──────────────────────────────────────────
@@ -163,9 +182,9 @@ export const useSessionStore = defineStore('session', {
         filePath:     this.current.outputUrl,
         printerId:    null,
         copies,
-        status:       'QUEUED',
+        status:       'PRINTING',
         createdAt:    new Date().toISOString(),
-        startedAt:    null,
+        startedAt:    new Date().toISOString(),
         completedAt:  null,
         errorMessage: null,
         retryCount:   0,
@@ -178,6 +197,21 @@ export const useSessionStore = defineStore('session', {
       await this._log('info', 'printer', 'print.queued', `Job ${job.id} queued for session ${this.current.id}`)
       await this._persist()
 
+      // Eksekusi pencetakan fisik browser/OS print engine
+      const success = await printImage(this.current.outputUrl, {
+        copies,
+        title: `RD Photobooth — ${this.current.id}`,
+      })
+
+      if (success) {
+        job.status = 'COMPLETED'
+        job.completedAt = new Date().toISOString()
+      } else {
+        job.status = 'FAILED'
+        job.errorMessage = 'Print execution cancelled or failed'
+      }
+
+      await printJobsDB.save(job)
       return job
     },
 
@@ -200,6 +234,7 @@ export const useSessionStore = defineStore('session', {
       // Archive to history
       this.history.unshift({ ...this.current })
       await this._persist()
+      await settingsDB.set('activeSessionId', null)
       await this._log('info', 'session', 'session.completed', `Session ${this.current.id} completed`)
     },
 
@@ -210,6 +245,7 @@ export const useSessionStore = defineStore('session', {
       }
       this.current = null
       this.error   = null
+      await settingsDB.set('activeSessionId', null)
     },
 
     // ─── Delete session ──────────────────────────────────────
@@ -230,9 +266,9 @@ export const useSessionStore = defineStore('session', {
         filePath:     session.outputUrl,
         printerId:    null,
         copies,
-        status:       'QUEUED',
+        status:       'PRINTING',
         createdAt:    new Date().toISOString(),
-        startedAt:    null,
+        startedAt:    new Date().toISOString(),
         completedAt:  null,
         errorMessage: null,
         retryCount:   0,
@@ -240,7 +276,25 @@ export const useSessionStore = defineStore('session', {
 
       this.printQueue.push(job)
       await printJobsDB.save(job)
-      await this._log('info', 'printer', 'print.reprint_queued', `Reprint job ${job.id} queued for session ${session.id}`)
+      await this._log('info', 'printer', 'print.reprint_started', `Reprint job ${job.id} started for session ${session.id}`)
+
+      // Eksekusi pencetakan fisik browser/OS print engine
+      const success = await printImage(session.outputUrl, {
+        copies,
+        title: `RD Photobooth — ${session.id}`,
+      })
+
+      if (success) {
+        job.status = 'COMPLETED'
+        job.completedAt = new Date().toISOString()
+        await this._log('info', 'printer', 'print.reprint_completed', `Reprint job ${job.id} sent to printer`)
+      } else {
+        job.status = 'FAILED'
+        job.errorMessage = 'Print execution cancelled or failed'
+        await this._log('warn', 'printer', 'print.reprint_failed', `Reprint job ${job.id} was not completed`)
+      }
+
+      await printJobsDB.save(job)
       return job
     },
 

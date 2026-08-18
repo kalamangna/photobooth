@@ -1,244 +1,293 @@
 <template>
-  <div class="flex w-[100dvw] h-[100dvh] overflow-hidden bg-[#09090b] text-zinc-100 relative antialiased selection:bg-amber-500 selection:text-zinc-950">
-
-    <!-- ── Sidebar ─────────────────────────────────────────── -->
-    <aside
-      class="flex flex-col w-60 shrink-0 h-[100dvh] bg-zinc-900 border-r border-zinc-800/80 z-30 transition-transform duration-200 ease-out select-none"
-      :class="sidebarOpen ? 'translate-x-0 shadow-[8px_0_36px_rgba(0,0,0,0.6)]' : 'md:translate-x-0 max-md:-translate-x-full max-md:fixed max-md:inset-y-0 max-md:left-0'"
-    >
-      <!-- Brand & Active Role -->
-      <div class="flex flex-col gap-2.5 px-4 pt-5 pb-4 border-b border-zinc-800/80 shrink-0">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-sm">
-              <Icon name="lucide:hexagon" class="w-4 h-4 text-amber-400" />
-            </div>
-            <div class="flex flex-col">
-              <span class="text-sm font-bold tracking-tight text-zinc-100 leading-tight">RD Photobooth</span>
-              <span class="text-xs text-zinc-400">{{ auth.isAdmin.value ? 'Panel Admin' : 'Panel Operator' }}</span>
-            </div>
-          </div>
-          <button class="md:hidden p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800" @click="closeSidebar">
-            <Icon name="lucide:x" class="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      <!-- Navigation Links -->
-      <nav class="flex-1 flex flex-col gap-1 px-3 py-4 overflow-y-auto">
-        <!-- Dashboard (Admin & Operator) -->
-        <NuxtLink
-          to="/admin"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group"
-          :class="route.path === '/admin'
-            ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-sm font-semibold'
-            : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/70'"
-          @click="closeSidebar"
-        >
-          <Icon name="lucide:layout-dashboard" class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-          <span>Dashboard</span>
-        </NuxtLink>
-
-        <!-- Galeri Sesi (Admin & Operator) -->
-        <NuxtLink
-          to="/gallery"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group"
-          :class="route.path === '/gallery'
-            ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-sm font-semibold'
-            : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/70'"
-          @click="closeSidebar"
-        >
-          <Icon name="lucide:images" class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-          <span>Galeri Sesi</span>
-        </NuxtLink>
-
-        <!-- Admin Only Menus -->
-        <template v-if="auth.isAdmin.value">
-          <NuxtLink
-            to="/admin/templates"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group"
-            :class="route.path.startsWith('/admin/templates')
-              ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-sm font-semibold'
-              : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/70'"
-            @click="closeSidebar"
-          >
-            <Icon name="lucide:layout" class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-            <span>Template</span>
-          </NuxtLink>
-        </template>
-
-        <!-- Pengaturan (Admin & Operator) -->
-        <NuxtLink
-          to="/admin/settings"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group"
-          :class="route.path.startsWith('/admin/settings')
-            ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-sm font-semibold'
-            : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/70'"
-          @click="closeSidebar"
-        >
-          <Icon name="lucide:settings-2" class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-          <span>Pengaturan</span>
-        </NuxtLink>
-
-      </nav>
-
-      <!-- Footer: Lock -->
-      <div class="p-3 border-t border-zinc-800/80 flex flex-col gap-1.5 shrink-0">
+  <div class="antialiased bg-zinc-950 w-full h-screen text-zinc-100 flex flex-col font-sans overflow-hidden">
+    
+    <!-- ── Top Navbar (Fixed 64px) ────────────────────────────── -->
+    <header class="bg-zinc-900 border-b border-zinc-800 px-4 h-16 fixed top-0 left-0 right-0 z-40 flex items-center justify-between">
+      <div class="flex items-center gap-3">
         <button
-          class="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors text-left"
-          @click="lockAdmin"
-        >
-          <Icon name="lucide:lock" class="w-4 h-4 shrink-0 text-zinc-500" />
-          <span>Kunci Layar</span>
-        </button>
-      </div>
-    </aside>
-
-
-    <!-- ── Mobile Sidebar Overlay ─────────────────────────── -->
-    <Transition
-      enter-active-class="transition-opacity duration-200"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition-opacity duration-150"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="sidebarOpen"
-        class="fixed inset-0 z-20 bg-black/70 backdrop-blur-sm md:hidden"
-        @click="closeSidebar"
-      />
-    </Transition>
-
-    <!-- ── Main Workspace ──────────────────────────────────── -->
-    <div class="flex-1 flex flex-col h-[100dvh] overflow-hidden bg-zinc-950">
-
-      <!-- Top Mobile Header Bar -->
-      <header class="md:hidden flex items-center justify-between px-4 py-3 bg-zinc-900 border-b border-zinc-800/80 shrink-0">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-            <Icon name="lucide:hexagon" class="w-4 h-4" />
-          </div>
-          <span class="text-sm font-bold text-zinc-100">RD Photobooth</span>
-        </div>
-        <button
-          class="p-2 rounded-xl bg-zinc-800 text-zinc-300 hover:text-zinc-100"
+          type="button"
           @click="sidebarOpen = !sidebarOpen"
+          class="p-2 text-zinc-400 rounded-lg md:hidden hover:text-zinc-100 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-700"
+          aria-label="Buka menu navigasi"
         >
           <Icon name="lucide:menu" class="w-5 h-5" />
         </button>
-      </header>
 
-      <!-- Scrollable Main View -->
-      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <NuxtLink to="/admin" class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-500 text-zinc-950 flex items-center justify-center font-black text-sm shadow-sm">
+            RD
+          </div>
+          <div class="flex flex-col">
+            <span class="text-sm font-bold tracking-tight text-zinc-100 leading-none">RD Photobooth</span>
+            <span class="text-[10px] text-zinc-500 font-mono">Control Center</span>
+          </div>
+        </NuxtLink>
+      </div>
+
+      <!-- Active Event & Role / Logout -->
+      <div class="flex items-center gap-3">
+        <!-- Active Event pill -->
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-800/80 border border-zinc-700 text-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span class="text-zinc-400">Acara:</span>
+          <span class="font-semibold text-zinc-200 truncate max-w-[160px]">{{ activeEventName || 'RD Photobooth' }}</span>
+        </div>
+
+        <!-- Role Badge -->
+        <span
+          class="text-xs font-semibold px-2.5 py-1 rounded-md uppercase tracking-wider border"
+          :class="auth.isAdmin.value
+            ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'"
+        >
+          {{ auth.isAdmin.value ? 'Admin' : 'Operator' }}
+        </span>
+
+        <!-- Lock button -->
+        <button
+          type="button"
+          @click="lockAdmin"
+          class="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition-colors focus:outline-none"
+          title="Kunci Panel Admin"
+        >
+          <Icon name="lucide:lock" class="w-4 h-4" />
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Body Wrapper (Below Header) ───────────────────────── -->
+    <div class="flex-1 flex pt-16 h-screen overflow-hidden">
+      
+      <!-- ── Sidebar Navigation ──────────────────────────────── -->
+      <aside
+        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+        class="fixed md:static top-16 bottom-0 left-0 z-30 w-64 h-[calc(100vh-4rem)] transition-transform duration-200 bg-zinc-900 border-r border-zinc-800 md:translate-x-0 shrink-0 flex flex-col justify-between"
+        aria-label="Sidebar"
+      >
+        <div class="overflow-y-auto py-5 px-3 flex-1 flex flex-col justify-between">
+          <ul class="space-y-1.5 font-medium text-sm">
+            <!-- Dashboard (All) -->
+            <li>
+              <NuxtLink
+                to="/admin"
+                @click="sidebarOpen = false"
+                class="flex items-center p-2.5 rounded-xl text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors group"
+                active-class="bg-zinc-800 text-amber-400 font-bold"
+                exact
+              >
+                <Icon name="lucide:layout-dashboard" class="w-5 h-5 text-zinc-400 group-hover:text-zinc-100 transition-colors" />
+                <span class="ml-3">Dashboard</span>
+              </NuxtLink>
+            </li>
+
+            <!-- Acara (All) -->
+            <li>
+              <NuxtLink
+                to="/admin/event"
+                @click="sidebarOpen = false"
+                class="flex items-center p-2.5 rounded-xl text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors group"
+                active-class="bg-zinc-800 text-amber-400 font-bold"
+              >
+                <Icon name="lucide:party-popper" class="w-5 h-5 text-zinc-400 group-hover:text-zinc-100 transition-colors" />
+                <span class="ml-3">Acara</span>
+              </NuxtLink>
+            </li>
+
+            <!-- Sesi Foto (All) -->
+            <li>
+              <NuxtLink
+                to="/admin/sessions"
+                @click="sidebarOpen = false"
+                class="flex items-center p-2.5 rounded-xl text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors group"
+                active-class="bg-zinc-800 text-amber-400 font-bold"
+              >
+                <Icon name="lucide:images" class="w-5 h-5 text-zinc-400 group-hover:text-zinc-100 transition-colors" />
+                <span class="ml-3">Sesi Foto</span>
+              </NuxtLink>
+            </li>
+
+            <!-- Perangkat (All) -->
+            <li>
+              <NuxtLink
+                to="/admin/devices"
+                @click="sidebarOpen = false"
+                class="flex items-center p-2.5 rounded-xl text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors group"
+                active-class="bg-zinc-800 text-amber-400 font-bold"
+              >
+                <Icon name="lucide:cpu" class="w-5 h-5 text-zinc-400 group-hover:text-zinc-100 transition-colors" />
+                <span class="ml-3">Perangkat</span>
+              </NuxtLink>
+            </li>
+
+            <!-- Admin Only Section -->
+            <template v-if="auth.isAdmin.value">
+              <li class="pt-3 pb-1 px-3">
+                <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Pengelolaan Lanjutan</span>
+              </li>
+
+              <!-- Template -->
+              <li>
+                <NuxtLink
+                  to="/admin/templates"
+                  @click="sidebarOpen = false"
+                  class="flex items-center p-2.5 rounded-xl text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors group"
+                  active-class="bg-zinc-800 text-amber-400 font-bold"
+                >
+                  <Icon name="lucide:layout" class="w-5 h-5 text-zinc-400 group-hover:text-zinc-100 transition-colors" />
+                  <span class="ml-3">Template</span>
+                </NuxtLink>
+              </li>
+
+              <!-- Pengaturan -->
+              <li>
+                <NuxtLink
+                  to="/admin/settings"
+                  @click="sidebarOpen = false"
+                  class="flex items-center p-2.5 rounded-xl text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors group"
+                  active-class="bg-zinc-800 text-amber-400 font-bold"
+                >
+                  <Icon name="lucide:settings" class="w-5 h-5 text-zinc-400 group-hover:text-zinc-100 transition-colors" />
+                  <span class="ml-3">Pengaturan</span>
+                </NuxtLink>
+              </li>
+
+              <!-- Log -->
+              <li>
+                <NuxtLink
+                  to="/admin/logs"
+                  @click="sidebarOpen = false"
+                  class="flex items-center p-2.5 rounded-xl text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors group"
+                  active-class="bg-zinc-800 text-amber-400 font-bold"
+                >
+                  <Icon name="lucide:file-text" class="w-5 h-5 text-zinc-400 group-hover:text-zinc-100 transition-colors" />
+                  <span class="ml-3">Log</span>
+                </NuxtLink>
+              </li>
+            </template>
+          </ul>
+
+          <!-- Bottom Link to Kiosk -->
+          <div class="pt-4 border-t border-zinc-800/80">
+            <NuxtLink
+              to="/"
+              @click="sidebarOpen = false"
+              class="flex items-center p-2.5 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
+            >
+              <Icon name="lucide:external-link" class="w-4 h-4 text-zinc-500" />
+              <span class="ml-3">Buka Layar Booth</span>
+            </NuxtLink>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Mobile Backdrop Overlay -->
+      <div
+        v-if="sidebarOpen"
+        @click="sidebarOpen = false"
+        class="bg-zinc-950/80 fixed inset-0 z-20 md:hidden backdrop-blur-sm"
+      />
+
+      <!-- ── Main Content Area (Independent Scroll) ───────────── -->
+      <main class="flex-1 h-[calc(100vh-4rem)] overflow-y-auto p-4 sm:p-6 lg:p-8">
         <slot />
       </main>
+
     </div>
 
-    <!-- ── PIN Lock Overlay ────────────────────────────────── -->
-    <Transition
-      enter-active-class="transition-opacity duration-200 ease-out"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition-opacity duration-150 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
+    <!-- ── PIN Login / Lock Overlay ──────────────────────────── -->
+    <div
+      v-if="!auth.isAuthenticated.value"
+      class="fixed inset-0 z-50 bg-zinc-950 flex items-center justify-center p-4 select-none backdrop-blur-md"
     >
       <div
-        v-if="!auth.isAuthenticated.value"
-        class="fixed inset-0 z-50 bg-zinc-950/95 backdrop-blur-md flex items-center justify-center p-6 select-none"
+        class="w-full max-w-sm p-6 sm:p-8 bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl flex flex-col items-center gap-6"
+        @click="pinInputRef?.focus()"
       >
-        <!-- Ambient glow -->
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,rgba(245,158,11,0.08)_0%,transparent_70%)] pointer-events-none" />
-
-        <div
-          class="relative z-10 w-full max-w-[320px] bg-zinc-900 border border-zinc-800 rounded-3xl p-7 flex flex-col items-center gap-6 shadow-[0_24px_80px_rgba(0,0,0,0.6)]"
-          @click="pinInputRef?.focus()"
-        >
-          <!-- Header -->
-          <div class="flex flex-col items-center gap-1.5 text-center">
-            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-1">
-              <Icon name="lucide:lock" class="w-5 h-5" />
-            </div>
-            <h1 class="text-xl font-bold text-zinc-100 tracking-tight">Masukkan PIN</h1>
+        <div class="flex flex-col items-center gap-2 text-center">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <Icon name="lucide:lock" class="w-6 h-6" />
           </div>
-
-          <!-- Dots -->
-          <div class="flex gap-3">
-            <span
-              v-for="i in 6"
-              :key="i"
-              class="w-3.5 h-3.5 rounded-full border-2 transition-all duration-150"
-              :class="pinInput.length >= i
-                ? 'bg-amber-400 border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.6)] scale-110'
-                : 'bg-zinc-950 border-zinc-700'"
-            />
+          <div>
+            <h2 class="text-xl font-bold text-zinc-100">Autentikasi Akses</h2>
+            <p class="text-xs text-zinc-400 mt-0.5">Masukkan PIN 6 digit (Admin / Operator)</p>
           </div>
-
-          <!-- Hidden Input for keyboard typing -->
-          <input
-            id="admin-pin-hidden-input"
-            ref="pinInputRef"
-            v-model="pinInput"
-            type="password"
-            inputmode="numeric"
-            maxlength="6"
-            class="sr-only"
-            @keyup.enter="checkPin"
-            @input="onInput"
-          />
-
-          <!-- Numpad -->
-          <div class="grid grid-cols-3 gap-2.5 w-full">
-            <button
-              v-for="n in ['1','2','3','4','5','6','7','8','9','','0','⌫']"
-              :key="n"
-              class="aspect-[1.3] bg-zinc-800 hover:bg-zinc-750 border border-zinc-700/60 rounded-2xl text-zinc-100 text-xl font-bold flex items-center justify-center transition-all active:scale-90 active:bg-amber-500/20 select-none"
-              :class="n === '' ? 'invisible pointer-events-none' : ''"
-              :disabled="n === ''"
-              @click="onNumpad(n)"
-            >
-              <Icon v-if="n === '⌫'" name="lucide:delete" class="w-5 h-5 text-zinc-300" />
-              <span v-else>{{ n }}</span>
-            </button>
-          </div>
-
-          <!-- Error -->
-          <p v-if="pinError" class="text-xs font-semibold text-rose-400 -mt-2">
-            PIN tidak cocok. Coba lagi.
-          </p>
         </div>
+
+        <!-- PIN Dots Indicator -->
+        <div class="flex justify-center gap-3 my-1">
+          <span
+            v-for="i in 6"
+            :key="i"
+            class="w-3.5 h-3.5 rounded-full border-2 transition-all duration-150"
+            :class="pinInput.length >= i ? 'bg-amber-500 border-amber-500 scale-110' : 'bg-zinc-800 border-zinc-700'"
+          />
+        </div>
+
+        <input
+          id="admin-pin-hidden-input"
+          ref="pinInputRef"
+          v-model="pinInput"
+          type="password"
+          inputmode="numeric"
+          maxlength="6"
+          class="sr-only"
+          @keyup.enter="checkPin"
+          @input="onInput"
+        />
+
+        <!-- Keypad -->
+        <div class="grid grid-cols-3 gap-2.5 w-full">
+          <button
+            v-for="n in ['1','2','3','4','5','6','7','8','9','','0','⌫']"
+            :key="n"
+            type="button"
+            class="h-13 py-3 flex items-center justify-center text-lg font-bold text-zinc-100 bg-zinc-800/80 border border-zinc-700/80 rounded-2xl hover:bg-zinc-700 hover:text-amber-400 active:scale-95 transition-all focus:outline-none"
+            :class="n === '' ? 'invisible pointer-events-none' : ''"
+            :disabled="n === ''"
+            @click="onNumpad(n)"
+          >
+            <Icon v-if="n === '⌫'" name="lucide:delete" class="w-5 h-5" />
+            <span v-else>{{ n }}</span>
+          </button>
+        </div>
+
+        <p v-if="pinError" class="text-xs text-rose-400 font-semibold animate-shake">
+          PIN tidak cocok. Silakan coba lagi.
+        </p>
       </div>
-    </Transition>
+    </div>
 
   </div>
 </template>
 
 <script setup lang="ts">
-import { useAuth } from '~/composables/useAuth'
+import { useAuth }    from '~/composables/useAuth'
+import { settingsDB } from '~/services/db'
 
-const route       = useRoute()
-const auth        = useAuth()
-const pinInput    = ref('')
-const pinError    = ref(false)
-const pinInputRef = ref<HTMLInputElement | null>(null)
-const sidebarOpen = ref(false)
+const auth            = useAuth()
+const pinInput        = ref('')
+const pinError        = ref(false)
+const pinInputRef     = ref<HTMLInputElement | null>(null)
+const sidebarOpen     = ref(false)
+const activeEventName = ref('')
 
 onMounted(async () => {
   await auth.loadPins()
+  activeEventName.value = (await settingsDB.get<string>('activeEventName'))
+    || (typeof localStorage !== 'undefined' ? localStorage.getItem('photobooth_event_name') : '')
+    || 'RD Photobooth'
 
   if (!auth.isAuthenticated.value) {
     nextTick(() => pinInputRef.value?.focus())
   }
 })
 
-function closeSidebar() {
-  sidebarOpen.value = false
-}
-
 function onNumpad(key: string) {
-  if (key === '⌫') { pinInput.value = pinInput.value.slice(0, -1); pinError.value = false; return }
+  if (key === '⌫') {
+    pinInput.value = pinInput.value.slice(0, -1)
+    pinError.value = false
+    return
+  }
   if (key === '' || pinInput.value.length >= 6) return
   pinInput.value += key
   pinError.value = false
@@ -264,14 +313,6 @@ async function checkPin() {
 }
 
 function lockAdmin() {
-  auth.logout()
-  pinInput.value = ''
-  pinError.value = false
-  sidebarOpen.value = false
-  nextTick(() => pinInputRef.value?.focus())
-}
-
-function lockToSwitchRole() {
   auth.logout()
   pinInput.value = ''
   pinError.value = false

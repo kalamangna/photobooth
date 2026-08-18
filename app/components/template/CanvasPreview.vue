@@ -22,6 +22,8 @@ const props = defineProps<{
   photos:   Record<number, string>
   /** Max width in pixels for display (canvas is scaled down) */
   maxWidth?: number
+  /** Max height in pixels for display */
+  maxHeight?: number
   /** Optional dynamic event title */
   eventName?: string
 }>()
@@ -35,7 +37,12 @@ const isRendering  = ref(false)
 
 // ─── Compute display size ──────────────────────────────────────
 const maxW    = computed(() => props.maxWidth ?? 480)
-const scale   = computed(() => Math.min(1, maxW.value / props.template.canvas.width))
+const maxH    = computed(() => props.maxHeight ?? 600)
+const scale   = computed(() => {
+  const scaleW = maxW.value / props.template.canvas.width
+  const scaleH = maxH.value / props.template.canvas.height
+  return Math.min(1, scaleW, scaleH)
+})
 const displayW = computed(() => Math.round(props.template.canvas.width  * scale.value))
 const displayH = computed(() => Math.round(props.template.canvas.height * scale.value))
 
@@ -46,6 +53,7 @@ const wrapStyle = computed(() => ({
 
 // ─── Render ───────────────────────────────────────────────────
 async function render() {
+  await nextTick()
   if (!canvasRef.value) return
   isRendering.value = true
 
@@ -56,6 +64,7 @@ async function render() {
       eventName: props.eventName,
     })
 
+    if (!canvasRef.value) return
     // Copy pixels to our canvas
     const ctx = canvasRef.value.getContext('2d')!
     ctx.clearRect(0, 0, displayW.value, displayH.value)
@@ -67,11 +76,15 @@ async function render() {
   }
 }
 
-// Re-render when template, photos, or eventName change
+onMounted(() => {
+  render()
+})
+
+// Re-render when template, photos, maxWidth, maxHeight or eventName change
 watch(
-  () => [props.template, props.photos, props.maxWidth, props.eventName],
+  () => [props.template, props.photos, props.maxWidth, props.maxHeight, props.eventName],
   () => render(),
-  { deep: true, immediate: true },
+  { deep: true },
 )
 
 // Expose render for parent to trigger manually

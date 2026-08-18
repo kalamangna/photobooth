@@ -36,6 +36,7 @@ export interface Session {
   totalShots: number
   currentShot: number
   outputUrl: string | null
+  printJobId: string | null
   customerName: string | null
   customerEmail: string | null
   startedAt: string
@@ -104,6 +105,7 @@ export function createSession(options: {
     totalShots,
     currentShot: 0,
     outputUrl: null,
+    printJobId: null,
     customerName: null,
     customerEmail: null,
     startedAt: new Date().toISOString(),

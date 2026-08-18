@@ -7,10 +7,12 @@
     <!-- ── Header ──────────────────────────────────────────────── -->
     <header class="w-full max-w-sm flex items-center justify-between py-2 relative z-10">
       <div class="flex items-center gap-2">
-        <Icon name="lucide:sparkles" class="w-5 h-5 text-amber-400" />
-        <span class="font-bold text-sm tracking-tight text-zinc-100">{{ eventName || 'RD Photobooth' }}</span>
+        <Icon name="lucide:sparkles" class="w-5 h-5 text-amber-400 shrink-0" />
+        <span class="font-bold text-sm tracking-tight text-zinc-100 truncate">
+          {{ eventName || 'RD Photobooth' }}
+        </span>
       </div>
-      <span class="text-[11px] font-mono text-zinc-400">{{ formattedDate }}</span>
+      <span class="text-[11px] font-mono text-zinc-400 shrink-0">{{ formattedDate }}</span>
     </header>
 
     <!-- ── Main Content / Photo Card ───────────────────────────── -->
@@ -63,8 +65,14 @@
         @click="sharePhoto"
       >
         <Icon name="lucide:share-2" class="w-4 h-4 text-amber-400" />
-        <span>Bagikan Foto</span>
+        <span>Bagikan</span>
       </button>
+
+      <div class="flex items-center justify-center pt-2">
+        <span class="font-mono text-[10px] font-bold tracking-[0.24em] uppercase text-zinc-600">
+          RD PHOTOBOOTH
+        </span>
+      </div>
     </footer>
 
   </div>
@@ -77,7 +85,7 @@ definePageMeta({ layout: 'default' })
 
 useSeoMeta({
   title: 'Download Foto — RD Photobooth',
-  description: 'Download softfile foto photobooth Anda dalam resolusi HD.',
+  description: 'Download foto photobooth Anda.',
 })
 
 const route          = useRoute()

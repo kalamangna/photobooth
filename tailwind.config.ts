@@ -6,6 +6,7 @@ export default {
     './app/layouts/**/*.vue',
     './app/pages/**/*.vue',
     './app/app.vue',
+    './node_modules/flowbite/**/*.{js,ts}',
   ],
   theme: {
     extend: {
@@ -28,5 +29,7 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('flowbite/plugin'),
+  ],
 } satisfies Config

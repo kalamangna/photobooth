@@ -35,87 +35,104 @@
     >
       <div
         v-if="sessionStore.sessionState === 'PROCESSING'"
-        class="absolute inset-0 z-40 flex flex-col items-center justify-center gap-5 bg-black/80 backdrop-blur-sm"
+        class="absolute inset-0 z-40 flex flex-col items-center justify-center gap-4 bg-black/85 backdrop-blur-sm"
       >
         <div class="w-12 h-12 rounded-full border-4 border-zinc-700 border-t-amber-400 animate-spin" />
-        <div class="flex flex-col items-center gap-1.5 text-center">
-          <p class="text-lg font-bold text-zinc-100 tracking-tight">Creating your photos…</p>
-          <p class="text-sm text-zinc-400">Preparing your memory</p>
+        <div class="flex flex-col items-center gap-1 text-center">
+          <p class="text-xl font-bold text-zinc-100 tracking-tight">Menyiapkan foto...</p>
+          <p class="text-xs text-zinc-400">Tunggu sebentar ya</p>
         </div>
       </div>
     </Transition>
 
     <!-- ── Camera viewport ────────────────────────────────── -->
-    <div class="relative flex-1 min-w-0 min-h-0 bg-black flex items-center justify-center overflow-hidden">
+    <div class="relative flex-1 min-w-0 min-h-0 bg-black flex items-center justify-center p-3 sm:p-6 overflow-hidden">
 
-      <!-- Live video -->
-      <video
-        v-show="showLiveCamera"
-        ref="videoRef"
-        class="w-full h-full object-cover scale-x-[-1]"
-        autoplay muted playsinline
-      />
-
-      <!-- Shot counter badge -->
+      <!-- Viewfinder matching active template photo slot -->
       <div
-        v-if="showLiveCamera && sessionStore.totalShots > 1"
-        class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/55 backdrop-blur-md border border-white/8 rounded-full px-3 py-1 pointer-events-none"
+        v-show="showLiveCamera"
+        class="relative max-w-full max-h-full flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-zinc-800 bg-zinc-950 transition-all duration-300 ease-out"
+        :style="{
+          aspectRatio: `${slotRatio}`,
+          borderRadius: `${slotBorderRadius}px`,
+        }"
       >
-        <span class="font-mono text-xs font-bold text-zinc-300">
-          {{ sessionStore.currentShot + 1 }} / {{ sessionStore.totalShots }}
-        </span>
-      </div>
+        <!-- Live video -->
+        <video
+          ref="videoRef"
+          class="w-full h-full object-cover scale-x-[-1]"
+          autoplay muted playsinline
+        />
 
-      <!-- Countdown overlay -->
-      <Transition
-        enter-active-class="transition-opacity duration-200 ease-out"
-        enter-from-class="opacity-0"
-        leave-active-class="transition-opacity duration-150 ease-in"
-        leave-to-class="opacity-0"
-      >
+        <!-- Viewfinder framing corners -->
+        <div class="absolute inset-0 pointer-events-none border border-white/10 rounded-[inherit]">
+          <div class="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-white/40 rounded-tl-sm" />
+          <div class="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-white/40 rounded-tr-sm" />
+          <div class="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-white/40 rounded-bl-sm" />
+          <div class="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-white/40 rounded-br-sm" />
+        </div>
+
+        <!-- Shot counter badge -->
         <div
-          v-if="sessionStore.sessionState === 'COUNTDOWN'"
-          class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 pointer-events-none"
+          v-if="sessionStore.totalShots > 1"
+          class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md border border-white/15 rounded-full px-3 py-1 pointer-events-none shadow-md"
         >
-          <!-- Microcopy -->
-          <p class="text-sm font-bold tracking-[0.2em] uppercase text-amber-300/80">{{ shotMicrocopy }}</p>
+          <span class="font-mono text-xs font-bold text-zinc-200">
+            {{ sessionStore.currentShot + 1 }} / {{ sessionStore.totalShots }}
+          </span>
+        </div>
 
-          <!-- Ring + number -->
-          <div class="relative flex items-center justify-center">
-            <svg class="-rotate-90 w-[clamp(120px,20vmin,180px)] h-[clamp(120px,20vmin,180px)]" viewBox="0 0 120 120">
-              <circle class="stroke-white/10" cx="60" cy="60" r="52" fill="none" stroke-width="5" />
-              <circle
-                class="stroke-amber-400 transition-[stroke-dashoffset] duration-1000 ease-linear"
-                cx="60" cy="60" r="52"
-                fill="none" stroke-width="5" stroke-linecap="round"
-                :stroke-dasharray="CIRCUMFERENCE"
-                :stroke-dashoffset="ringOffset"
-              />
-            </svg>
-            <div class="absolute inset-0 flex items-center justify-center">
-              <Transition
-                enter-active-class="transition-all duration-150 ease-out"
-                enter-from-class="opacity-0 scale-150"
-                leave-active-class="transition-all duration-80 ease-in"
-                leave-to-class="opacity-0 scale-75"
-                mode="out-in"
-              >
-                <span
-                  v-if="countdownVal > 0"
-                  :key="countdownVal"
-                  class="font-mono font-black text-amber-400 leading-none select-none text-[clamp(2.5rem,8vmin,5rem)] [text-shadow:0_0_30px_rgba(245,158,11,0.8)]"
-                >{{ countdownVal }}</span>
-                <Icon
-                  v-else
-                  key="cam"
-                  name="lucide:camera"
-                  class="text-amber-400 w-[clamp(2rem,6vmin,3.5rem)] h-[clamp(2rem,6vmin,3.5rem)]"
+        <!-- Countdown overlay -->
+        <Transition
+          enter-active-class="transition-opacity duration-200 ease-out"
+          enter-from-class="opacity-0"
+          leave-active-class="transition-opacity duration-150 ease-in"
+          leave-to-class="opacity-0"
+        >
+          <div
+            v-if="sessionStore.sessionState === 'COUNTDOWN'"
+            class="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-black/25 backdrop-blur-[1px] pointer-events-none"
+          >
+            <!-- Microcopy -->
+            <p class="text-sm font-bold tracking-[0.2em] uppercase text-amber-300 drop-shadow">{{ shotMicrocopy }}</p>
+
+            <!-- Ring + number -->
+            <div class="relative flex items-center justify-center">
+              <svg class="-rotate-90 w-[clamp(120px,20vmin,180px)] h-[clamp(120px,20vmin,180px)]" viewBox="0 0 120 120">
+                <circle class="stroke-white/10" cx="60" cy="60" r="52" fill="none" stroke-width="5" />
+                <circle
+                  class="stroke-amber-400 transition-[stroke-dashoffset] duration-1000 ease-linear"
+                  cx="60" cy="60" r="52"
+                  fill="none" stroke-width="5" stroke-linecap="round"
+                  :stroke-dasharray="CIRCUMFERENCE"
+                  :stroke-dashoffset="ringOffset"
                 />
-              </Transition>
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <Transition
+                  enter-active-class="transition-all duration-150 ease-out"
+                  enter-from-class="opacity-0 scale-150"
+                  leave-active-class="transition-all duration-80 ease-in"
+                  leave-to-class="opacity-0 scale-75"
+                  mode="out-in"
+                >
+                  <span
+                    v-if="countdownVal > 0"
+                    :key="countdownVal"
+                    class="font-mono font-black text-amber-400 leading-none select-none text-[clamp(2.5rem,8vmin,5rem)] [text-shadow:0_0_30px_rgba(245,158,11,0.8)]"
+                  >{{ countdownVal }}</span>
+                  <Icon
+                    v-else
+                    key="cam"
+                    name="lucide:camera"
+                    class="text-amber-400 w-[clamp(2rem,6vmin,3.5rem)] h-[clamp(2rem,6vmin,3.5rem)]"
+                  />
+                </Transition>
+              </div>
             </div>
           </div>
-        </div>
-      </Transition>
+        </Transition>
+      </div>
 
       <!-- Result preview -->
       <Transition
@@ -149,19 +166,22 @@
         class="flex gap-2 items-center shrink-0"
         :class="isLandscape ? 'flex-row flex-wrap justify-center' : 'flex-col'"
       >
-        <div
+        <button
           v-for="(photo, i) in sessionStore.photos"
           :key="i"
-          class="w-12 h-14 rounded-[10px] border overflow-hidden flex items-center justify-center bg-black shrink-0 transition-colors duration-200"
+          type="button"
+          class="w-12 h-14 rounded-[10px] border overflow-hidden flex items-center justify-center bg-black shrink-0 transition-all duration-200 relative"
           :class="{
-            'border-emerald-500':  photo.dataUrl !== null,
-            'border-amber-400':    photo.dataUrl === null && sessionStore.currentShot === i && !showResult,
-            'border-zinc-800':     photo.dataUrl === null && (sessionStore.currentShot !== i || showResult),
+            'border-emerald-500 hover:border-amber-400 cursor-pointer active:scale-95 shadow-sm': photo.dataUrl !== null && sessionStore.sessionState === 'READY',
+            'border-amber-400 ring-2 ring-amber-400/30': photo.dataUrl === null && sessionStore.currentShot === i && !showResult,
+            'border-zinc-800 opacity-60': photo.dataUrl === null && (sessionStore.currentShot !== i || showResult),
           }"
+          :title="photo.dataUrl && sessionStore.sessionState === 'READY' ? `Klik untuk foto ulang jepretan ${i + 1}` : `Foto ke-${i + 1}`"
+          @click="photo.dataUrl && sessionStore.sessionState === 'READY' ? sessionStore.retakeShot(i) : null"
         >
           <img v-if="photo.dataUrl" :src="photo.dataUrl" class="w-full h-full object-cover" alt="" />
           <span v-else class="text-xs font-mono font-bold text-zinc-600">{{ i + 1 }}</span>
-        </div>
+        </button>
       </div>
 
       <!-- Actions -->
@@ -169,7 +189,7 @@
 
         <!-- READY -->
         <template v-if="sessionStore.sessionState === 'READY'">
-          <p class="text-xs font-semibold text-zinc-500 text-center">{{ shotHeadline }}</p>
+          <p class="text-xs font-semibold text-zinc-400 text-center">{{ shotHeadline }}</p>
           <button
             id="btn-capture"
             class="w-full min-h-[52px] px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-[0.97] text-zinc-950 font-bold text-base flex items-center justify-center gap-2.5 shadow-[0_4px_24px_rgba(245,158,11,0.25)] transition-all"
@@ -180,89 +200,93 @@
           </button>
           <button
             v-if="sessionStore.currentShot > 0"
-            class="flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-300 transition-colors"
+            class="flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
             @click="sessionStore.retakeShot()"
           >
             <Icon name="lucide:rotate-ccw" class="w-3.5 h-3.5" />
-            Foto Ulang
+            Foto Ulang Jepretan Ini
           </button>
         </template>
 
         <!-- COUNTDOWN -->
         <template v-if="sessionStore.sessionState === 'COUNTDOWN'">
-          <p class="text-sm text-zinc-500 text-center animate-pulse">Bersiap…</p>
+          <p class="text-sm text-zinc-400 text-center animate-pulse">Bersiap…</p>
         </template>
 
         <!-- PREVIEW -->
         <template v-if="sessionStore.sessionState === 'PREVIEW'">
-          <p class="text-sm font-bold text-zinc-200 text-center">Foto siap! 🎉</p>
-
-          <!-- Email (required) -->
-          <div class="bg-zinc-950/80 border border-zinc-800 rounded-[14px] p-3.5 flex flex-col gap-2">
-            <label class="text-[11px] font-semibold text-zinc-400" for="guest-email">
-              Email untuk softfile foto
-            </label>
-            <div class="flex gap-2">
-              <input
-                id="guest-email"
-                v-model="custEmail"
-                type="email"
-                inputmode="email"
-                class="flex-1 min-w-0 px-3.5 py-2.5 rounded-[10px] bg-black border text-zinc-100 text-sm font-sans outline-none transition-colors"
-                :class="emailError ? 'border-rose-500/60' : 'border-zinc-800 focus:border-amber-500/60'"
-                placeholder="nama@email.com"
-                maxlength="60"
-                required
-                @input="emailError = false"
-              />
-              <button
-                class="shrink-0 px-4 py-2.5 rounded-[10px] bg-amber-500 hover:bg-amber-400 active:scale-[0.97] text-zinc-950 text-sm font-bold transition-all flex items-center justify-center min-w-[72px] disabled:opacity-50"
-                :disabled="isSendingEmail"
-                @click="handleFinish"
-              >
-                <Icon v-if="isSendingEmail" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
-                <span v-else>Selesai</span>
-              </button>
-            </div>
-            <span v-if="emailError" class="text-[11px] text-rose-400">{{ emailErrorMsg }}</span>
-            <span v-if="emailSent" class="text-[11px] text-emerald-400">✓ Terkirim</span>
-          </div>
+          <p class="text-sm font-bold text-zinc-100 text-center">Hasil Foto</p>
 
           <button
-            class="flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-300 transition-colors"
-            @click="handleRetake"
+            class="w-full mt-2 py-3.5 px-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-[0.97] text-zinc-950 text-base font-bold transition-all flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(245,158,11,0.25)] min-h-[52px]"
+            @click="handleFinish"
           >
-            <Icon name="lucide:rotate-ccw" class="w-3.5 h-3.5" />
-            Foto Ulang
+            <span>Selesai</span>
+            <Icon name="lucide:check" class="w-5 h-5" />
           </button>
+
+          <div class="flex items-center justify-center gap-2 pt-1">
+            <button
+              class="flex items-center gap-1.5 py-1.5 px-3 text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
+              @click="handleRetake"
+            >
+              <Icon name="lucide:rotate-ccw" class="w-3.5 h-3.5" />
+              Foto Ulang Semua
+            </button>
+          </div>
         </template>
 
         <!-- DONE -->
         <template v-if="sessionStore.sessionState === 'DONE'">
           <div class="flex flex-col items-center gap-3 w-full">
             <div class="flex flex-col items-center gap-0.5 text-center">
-              <span class="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-amber-400">Your photos</span>
-              <p class="text-xs text-zinc-500">Scan QR untuk softfile foto</p>
+              <span v-if="hasCustomEvent" class="text-xs font-bold text-amber-400">
+                {{ eventName }}
+              </span>
+              <p class="text-xs font-semibold text-zinc-200">Scan QR untuk download foto</p>
             </div>
             <div class="w-[clamp(140px,40%,200px)] aspect-square bg-white rounded-[14px] p-2 flex items-center justify-center shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
               <img v-if="qrDataUrl" :src="qrDataUrl" class="w-full h-full object-contain" alt="QR Foto" />
               <Icon v-else name="lucide:loader-2" class="w-6 h-6 text-zinc-400 animate-spin" />
             </div>
-            <p class="text-[11px] text-zinc-600 text-center">Ambil hasil print di meja operator</p>
+
+            <!-- Email Backup Form -->
+            <div class="w-full mt-1 flex flex-col gap-2">
+              <p class="text-[11px] text-zinc-400 text-center">── atau masukkan email ──</p>
+              <div v-if="emailSent" class="w-full py-3 px-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center gap-2 text-emerald-400 text-xs font-semibold">
+                <Icon name="lucide:check-circle-2" class="w-4 h-4" />
+                <span>Email berhasil disimpan ✓</span>
+              </div>
+              <div v-else class="flex items-center gap-2">
+                <input
+                  v-model="custEmail"
+                  type="email"
+                  placeholder="kenzie@gmail.com"
+                  class="flex-1 px-3.5 py-3 rounded-2xl bg-zinc-950 border text-zinc-100 text-xs font-sans placeholder-zinc-500 outline-none transition-colors"
+                  :class="emailError ? 'border-rose-500/60 focus:border-rose-500' : 'border-zinc-800 focus:border-amber-500'"
+                  @input="emailError = false"
+                  @keyup.enter="handleSendEmail"
+                />
+                <button
+                  class="py-3 px-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-zinc-950 text-xs font-bold transition-all disabled:opacity-40 flex items-center justify-center min-w-[70px]"
+                  :disabled="isSendingEmail || !custEmail"
+                  @click="handleSendEmail"
+                >
+                  <Icon v-if="isSendingEmail" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
+                  <span v-else>Simpan</span>
+                </button>
+              </div>
+              <span v-if="emailError" class="text-[10px] text-rose-400 text-center">{{ emailErrorMsg }}</span>
+            </div>
+
+            <div class="flex flex-col items-center gap-0.5 text-center mt-1">
+              <p class="text-[11px] text-zinc-300 font-semibold">Foto akan dicetak oleh operator</p>
+              <p class="text-[10px] text-zinc-500">Silakan ambil hasil cetak di meja operator</p>
+            </div>
           </div>
         </template>
 
       </div>
-
-      <!-- Cancel button -->
-      <button
-        v-if="sessionStore.sessionState === 'READY' || sessionStore.sessionState === 'PREVIEW'"
-        class="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold text-zinc-600 hover:text-zinc-400 transition-colors self-end mt-auto shrink-0"
-        @click="handleCancel"
-      >
-        <Icon name="lucide:x" class="w-3.5 h-3.5" />
-        Batal
-      </button>
 
     </div>
   </div>
@@ -274,10 +298,10 @@ import { useSessionStore }  from '~/stores/session'
 import { useTemplateStore } from '~/stores/template'
 import { renderTemplate }   from '~/services/renderer'
 import { settingsDB }       from '~/services/db'
-import type { PhotoTemplate } from '~/types/template'
+import type { PhotoElement, PhotoTemplate } from '~/types/template'
 
 definePageMeta({ layout: 'default' })
-useSeoMeta({ title: 'Photobooth — Sesi Foto' })
+useSeoMeta({ title: 'Sesi Foto — RD Photobooth' })
 
 const router       = useRouter()
 const sessionStore = useSessionStore()
@@ -286,6 +310,31 @@ const templateStore = useTemplateStore()
 const eventName  = ref('')
 const cdDuration = ref(5)
 const isLandscape = ref(false)
+
+const hasCustomEvent = computed(() =>
+  Boolean(eventName.value && eventName.value.trim().toLowerCase() !== 'rd photobooth')
+)
+
+const activePhotoSlot = computed<PhotoElement | null>(() => {
+  const tpl = templateStore.active
+  if (!tpl) return null
+  const shotIdx = sessionStore.currentShot ?? 0
+  const slotEl = tpl.elements.find((el): el is PhotoElement => el.type === 'photo' && el.slot === shotIdx)
+  if (slotEl) return slotEl
+  return tpl.elements.find((el): el is PhotoElement => el.type === 'photo') || null
+})
+
+const slotRatio = computed(() => {
+  if (!activePhotoSlot.value || !activePhotoSlot.value.width || !activePhotoSlot.value.height) {
+    return 4 / 3
+  }
+  return activePhotoSlot.value.width / activePhotoSlot.value.height
+})
+
+const slotBorderRadius = computed(() => {
+  if (!activePhotoSlot.value?.borderRadius) return 16
+  return Math.min(24, Math.max(8, activePhotoSlot.value.borderRadius * 2))
+})
 
 function updateOrientation() {
   isLandscape.value = window.matchMedia('(orientation: landscape)').matches
@@ -296,7 +345,13 @@ let initialCmdVersion = 0
 let initialCmdNonce   = ''
 
 onMounted(async () => {
-  if (!sessionStore.current) { await router.replace('/'); return }
+  if (!sessionStore.current) {
+    const recovered = await sessionStore.recoverActiveSession()
+    if (!recovered || !sessionStore.current) {
+      await router.replace('/')
+      return
+    }
+  }
 
   updateOrientation()
   window.addEventListener('resize', updateOrientation)
@@ -316,7 +371,14 @@ onMounted(async () => {
   cdDuration.value = sessionStore.configuredCountdown || (await settingsDB.get<number>('activeCountdown')) || 5
 
   await templateStore.loadTemplates()
-  showPicker.value = true
+
+  if (sessionStore.current.templateId) {
+    templateStore.setActive(sessionStore.current.templateId)
+    showPicker.value = false
+  } else {
+    showPicker.value = true
+  }
+
   initCamera()
   window.addEventListener('keydown', onKeyDown)
 
@@ -373,15 +435,37 @@ async function initCamera() {
     return
   }
   try {
+    const savedCameraId = (await settingsDB.get<string>('selectedCameraId'))
+      || (typeof localStorage !== 'undefined' ? localStorage.getItem('photobooth_camera_id') : '') || ''
+
     let mediaStream: MediaStream | null = null
-    try {
-      mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1920, min: 640 }, height: { ideal: 1080, min: 480 }, facingMode: 'user' },
-        audio: false,
-      })
-    } catch {
-      mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+
+    if (savedCameraId) {
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            deviceId: { exact: savedCameraId },
+            width: { ideal: 1920, min: 640 },
+            height: { ideal: 1080, min: 480 },
+          },
+          audio: false,
+        })
+      } catch {
+        // Fallback jika deviceId tidak ditemukan
+      }
     }
+
+    if (!mediaStream) {
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1920, min: 640 }, height: { ideal: 1080, min: 480 }, facingMode: 'user' },
+          audio: false,
+        })
+      } catch {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      }
+    }
+
     stream = mediaStream
     if (videoRef.value && stream) {
       videoRef.value.srcObject = stream
@@ -435,18 +519,19 @@ async function startCountdown() {
 // ── Microcopy ──────────────────────────────────────────────────
 const shotMicrocopy = computed(() => {
   const i = sessionStore.currentShot; const t = sessionStore.totalShots
-  if (t === 1) return 'GET READY'
-  if (i === 0) return 'PHOTO 1'
-  if (i === t - 1) return 'LAST ONE!'
-  return 'ONE MORE!'
+  if (countdownVal.value === 1) return 'SENYUM!'
+  if (t === 1) return 'SIAP!'
+  if (i === 0) return 'FOTO 1'
+  if (i === t - 1) return 'TERAKHIR!'
+  return `FOTO ${i + 1}`
 })
 
 const shotHeadline = computed(() => {
   const i = sessionStore.currentShot; const t = sessionStore.totalShots
   if (t === 1) return 'Bersiap di depan kamera'
-  if (i === 0) return 'Foto pertama!'
-  if (i === t - 1) return 'Ini yang terakhir!'
-  return `Foto ke-${i + 1} dari ${t}`
+  if (i === 0) return `Foto 1 dari ${t}`
+  if (i === t - 1) return `Foto terakhir! (${t} dari ${t})`
+  return `Foto ${i + 1} dari ${t}`
 })
 
 // ── Capture ────────────────────────────────────────────────────
@@ -485,13 +570,14 @@ async function processPhotos() {
   }
 }
 
-// ── Email & Finish ─────────────────────────────────────────────
-const custEmail      = ref('')
-const emailError     = ref(false)
-const emailErrorMsg  = ref('Email wajib diisi.')
-const emailSent      = ref(false)
-const isSendingEmail = ref(false)
-const qrDataUrl      = ref('')
+// ── Customer Info & Finish ─────────────────────────────────────
+const custEmail         = ref('')
+const emailError        = ref(false)
+const emailErrorMsg     = ref('Email wajib diisi.')
+
+const emailSent         = ref(false)
+const isSendingEmail    = ref(false)
+const qrDataUrl         = ref('')
 
 function isEmailValid(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
@@ -504,27 +590,37 @@ async function generateQRCode(url: string) {
 }
 
 async function handleFinish() {
+  // Move to DONE and show QR
+  await sessionStore.finishSession()
+  if (sessionStore.current?.id && typeof window !== 'undefined') {
+    const downloadUrl = `${window.location.origin}/download/${sessionStore.current.id}`
+    await generateQRCode(downloadUrl)
+  }
+}
+
+async function handleSendEmail() {
   const email = custEmail.value.trim()
+  emailError.value = false
+
   if (!email) {
-    emailErrorMsg.value = 'Email wajib diisi.'
+    emailErrorMsg.value = 'Email wajib diisi'
     emailError.value = true
     return
   }
   if (!isEmailValid(email)) {
-    emailErrorMsg.value = 'Format email tidak valid.'
+    emailErrorMsg.value = 'Format email tidak valid'
     emailError.value = true
     return
   }
+
   isSendingEmail.value = true
   try {
-    await sessionStore.setCustomerInfo('', email)
+    // Save email as backup. Name is not required anymore.
+    await sessionStore.setCustomerInfo('Guest', email)
     emailSent.value = true
-    await sessionStore.finishSession()
-    if (sessionStore.current?.id && typeof window !== 'undefined') {
-      const downloadUrl = `${window.location.origin}/download/${sessionStore.current.id}`
-      await generateQRCode(downloadUrl)
-    }
-  } finally { isSendingEmail.value = false }
+  } finally {
+    isSendingEmail.value = false
+  }
 }
 
 // ── Retake / Cancel ────────────────────────────────────────────
@@ -534,8 +630,15 @@ async function handleRetake() {
   showPicker.value = true
 }
 
-async function handleCancel() { await sessionStore.resetSession(); await router.replace('/') }
-async function resetToHome()  { await sessionStore.resetSession(); await router.replace('/') }
+async function handleCancel() {
+  await sessionStore.resetSession()
+  await router.replace('/')
+}
+
+async function resetToHome() {
+  await sessionStore.resetSession()
+  await router.replace('/')
+}
 
 function onKeyDown(e: KeyboardEvent) {
   if (sessionStore.sessionState === 'DONE' && e.key === 'Escape') resetToHome()

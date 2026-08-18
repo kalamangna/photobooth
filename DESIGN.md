@@ -2,37 +2,26 @@
 
 ## 1. Tujuan
 
-Dokumen ini mendefinisikan rancangan visual dan UX untuk aplikasi photobooth berbasis web.
+Dokumen ini mendefinisikan rancangan visual, UX, dan struktur interface untuk aplikasi photobooth berbasis web.
 
 Aplikasi memiliki dua pengalaman utama:
 
-1. **Guest Experience** — berjalan pada iPad/tablet yang menjadi layar utama photobooth.
-2. **Admin Experience** — berjalan pada laptop, desktop, tablet, atau smartphone untuk konfigurasi dan pengendalian booth.
+1. **Guest / Frontend** — berjalan pada iPad atau tablet yang digunakan langsung oleh pelanggan.
+2. **Admin / Backend** — berjalan pada device lain seperti laptop, desktop, tablet, atau smartphone untuk mengelola dan mengoperasikan booth.
 
 Prinsip utama:
 
-> **Guest UI harus terasa seperti sebuah produk fisik photobooth, sedangkan Admin UI harus terasa seperti aplikasi web profesional.**
-
-Desain guest bersifat **adaptive/orientation-agnostic**. Aplikasi tidak mengunci portrait maupun landscape.
+> **Frontend harus sangat mudah digunakan pelanggan. Backend harus sangat jelas untuk operator. Keduanya menggunakan tone visual yang sama, tetapi tingkat informasi dan interaksinya berbeda.**
 
 ---
 
-## 2. Prinsip Desain
+# 2. Prinsip Utama
 
-### 2.1 Guest-first, bukan dashboard-first
+## 2.1 Customer-first
 
-Layar photobooth harus sederhana, visual, dan langsung dipahami tanpa instruksi panjang.
+Tablet adalah interface yang digunakan orang yang belum pernah melihat aplikasi sebelumnya. Pengguna harus dapat memahami apa yang harus dilakukan tanpa bantuan operator.
 
-Guest tidak perlu mengetahui:
-
-- jenis kamera
-- jenis printer
-- status API
-- session ID
-- sinkronisasi
-- detail teknis perangkat
-
-Guest cukup memahami:
+Flow dasar harus dapat dipahami secara intuitif:
 
 ```text
 Mulai
@@ -43,170 +32,310 @@ Foto
 ↓
 Lihat hasil
 ↓
-Cetak / Ambil foto digital
+Cetak / Ambil digital
+↓
+Selesai
 ```
 
-### 2.2 Adaptive, bukan portrait-first
+Hindari instruksi panjang, istilah teknis, dan pilihan yang tidak diperlukan.
 
-Orientasi layar bukan bagian dari identitas aplikasi.
+## 2.2 Adaptive, bukan portrait-first
 
-Layout harus menyesuaikan ruang yang tersedia dan tetap optimal pada:
+Aplikasi tidak mengasumsikan portrait maupun landscape sebagai orientasi wajib.
 
-- landscape
+Guest UI harus menjadi **orientation-agnostic** dan menyesuaikan:
+
+- ukuran tablet
+- aspect ratio
 - portrait
-- berbagai ukuran tablet
-- resolusi berbeda
+- landscape
+- safe area
+- resolusi layar
 
-Prioritas layout ditentukan oleh **camera viewport**, bukan oleh orientasi layar.
+Layout ditentukan oleh ruang yang tersedia dan **camera viewport**, bukan orientasi perangkat.
 
-### 2.3 Camera viewport adalah pusat pengalaman
+## 2.3 Camera-first
 
-Preview kamera merupakan elemen visual paling penting pada layar guest.
+Kamera adalah pusat pengalaman photobooth.
 
-Jangan membuat tombol atau branding mengambil ruang lebih besar daripada area yang dibutuhkan pengguna untuk melihat posisi mereka di kamera.
+Prioritas visual:
 
-### 2.4 Touch-first
+1. Camera viewport
+2. Posisi / arahan pengguna
+3. Primary CTA
+4. Branding event
+5. Informasi tambahan
 
-Semua interaksi guest dirancang untuk jari:
+## 2.4 Touch-first
 
-- tombol besar
+Frontend dirancang untuk sentuhan:
+
+- target sentuh besar
 - jarak antar kontrol cukup
 - tidak bergantung pada hover
-- tidak bergantung pada right click
-- tidak menggunakan kontrol kecil yang sulit disentuh
+- tidak bergantung pada right-click
+- tidak menggunakan kontrol kecil untuk aksi utama
 
-### 2.5 Minimal chrome
+## 2.5 Minimal UI
 
-Guest UI tidak menggunakan:
+Hindari komponen dan copy yang berlebihan di frontend maupun backend.
 
-- sidebar
-- navbar kompleks
-- menu teknis
-- tabel
-- form konfigurasi
-- elemen browser yang terlihat jika kiosk mode tersedia
+Jangan menambahkan komponen hanya karena tersedia di library.
 
-### 2.6 Premium tetapi natural
+Jangan menampilkan informasi yang tidak dibutuhkan pada konteks saat itu.
 
-Visual sebaiknya terasa:
+Prinsip:
 
-- bersih
-- modern
-- hangat
-- percaya diri
-- tidak terlalu ramai
-- tidak terlalu "techy"
+> **One screen, one clear purpose.**
 
-Animasi digunakan untuk memberi konteks, bukan sekadar dekorasi.
+## 2.6 Tone visual konsisten
 
----
+Frontend dan backend harus menggunakan:
 
-# 3. Arsitektur Experience
+- warna utama yang sama
+- semantic colors yang sama
+- typography yang selaras
+- radius dan border treatment yang konsisten
+- pola status yang konsisten
 
-```text
-                        PHOTOBOOTH
-                            │
-             ┌──────────────┴──────────────┐
-             │                             │
-      GUEST EXPERIENCE              ADMIN EXPERIENCE
-             │                             │
-        iPad / Tablet              Laptop / Tablet / HP
-             │                             │
-       Touch-first                 Control-first
-       Immersive                   Informative
-       Minimal                     Functional
-             │                             │
-             └──────────────┬──────────────┘
-                            │
-                       Shared Design
-                          System
-```
+Perbedaannya hanya pada komposisi dan kepadatan informasi.
 
-Guest dan Admin menggunakan design tokens yang sama, tetapi memiliki komposisi dan tingkat informasi yang berbeda.
+## 2.7 Native feel, web architecture
+
+Frontend tetap berbasis web, tetapi pengalaman guest harus terasa seperti aplikasi/produk photobooth khusus, bukan website biasa.
 
 ---
 
-# 4. Guest Experience
+# 3. Teknologi UI
 
-## 4.1 Prinsip layout
-
-Guest UI harus menggunakan **fluid composition**.
-
-Jangan mengandalkan ukuran layar tertentu seperti:
-
-```text
-1024 × 1366
-```
-
-sebagai ukuran desain absolut.
+## Frontend / Guest
 
 Gunakan:
 
-- container relatif
-- aspect-ratio
-- min/max width
-- safe area
-- viewport units
-- responsive grid/flex layout
+- Vue / Nuxt
+- TypeScript
+- **Pure Tailwind CSS**
 
-### Prioritas visual
+Tidak menggunakan Flowbite pada frontend guest.
 
-1. Camera viewport
-2. Posisi/arah pengguna
-3. Primary CTA
-4. Branding/event identity
-5. Informasi sekunder
+Semua komponen guest dibuat khusus untuk kebutuhan photobooth agar UI tetap ringan, sederhana, dan terkontrol.
+
+## Backend / Admin
+
+Gunakan:
+
+- Vue / Nuxt
+- TypeScript
+- Tailwind CSS
+- **Flowbite** sebagai component foundation
+
+Flowbite digunakan untuk komponen backend seperti:
+
+- button
+- input
+- select
+- modal
+- dropdown
+- table
+- tabs
+- badge
+- alert
+- drawer
+- form
+
+Komponen Flowbite boleh dikustomisasi agar mengikuti design token aplikasi.
+
+## Aturan penting
+
+Jangan menggunakan dua gaya visual yang berbeda antara Tailwind custom dan Flowbite.
+
+Flowbite hanya menjadi implementation layer untuk backend, bukan identitas visual yang berbeda.
 
 ---
 
-## 4.2 Landscape composition
+# 4. Arsitektur Experience
 
-Landscape dapat menjadi komposisi yang sangat baik untuk booth karena memberikan ruang horizontal bagi preview, branding, dan CTA.
+```text
+                         PHOTOBOOTH
+                              │
+              ┌───────────────┴───────────────┐
+              │                               │
+       GUEST / FRONTEND                  ADMIN / BACKEND
+              │                               │
+       iPad / Tablet                   Laptop / HP / Tablet
+              │                               │
+        Touch-first                     Control-first
+        Minimal                         Informative
+        Immersive                       Functional
+              │                               │
+              └───────────────┬───────────────┘
+                              │
+                       Shared Design Tokens
+```
 
-Contoh konsep:
+---
+
+# 5. Role Admin
+
+Backend memiliki dua role:
+
+```text
+Admin
+Operator
+```
+
+## 5.1 Admin
+
+Admin mempunyai **all access**.
+
+Admin dapat:
+
+- mengatur booth
+- mengatur event
+- mengatur template
+- mengatur kamera
+- mengatur printer
+- mengatur session
+- melakukan reprint
+- mengubah settings
+- melihat logs
+- mengelola operator
+- mengubah PIN operator
+- mengelola seluruh konfigurasi aplikasi
+
+## 5.2 Operator
+
+Operator digunakan untuk menjalankan booth saat event tanpa memberikan akses konfigurasi penuh.
+
+Operator dapat:
+
+- melihat status booth
+- melihat kamera
+- melihat printer
+- memulai / menghentikan sesi
+- melakukan retake bila diizinkan
+- melakukan reprint
+- melihat session yang relevan
+- menjalankan tindakan operasional
+
+Operator **tidak** dapat mengubah konfigurasi kritis seperti:
+
+- camera configuration utama
+- printer configuration utama
+- event configuration permanen
+- template management
+- system settings
+- operator management
+- destructive actions
+
+---
+
+# 6. Login Admin
+
+Login backend harus sederhana.
+
+Role dapat dipilih atau ditentukan dari account yang digunakan.
+
+Untuk penggunaan operator di lokasi event, gunakan **PIN login**.
+
+Contoh:
+
+```text
+┌───────────────────────────────┐
+│           BOOTH               │
+│                               │
+│        OPERATOR LOGIN         │
+│                               │
+│       • • • • • •             │
+│                               │
+│       [ 1 ] [ 2 ] [ 3 ]      │
+│       [ 4 ] [ 5 ] [ 6 ]      │
+│       [ 7 ] [ 8 ] [ 9 ]      │
+│       [ ← ] [ 0 ] [ ✓ ]      │
+│                               │
+└───────────────────────────────┘
+```
+
+Untuk operator, PIN harus menjadi mekanisme login yang cepat dan praktis.
+
+Admin tetap dapat menggunakan authentication penuh sesuai sistem account aplikasi.
+
+---
+
+# 7. Guest / Frontend
+
+## 7.1 Tujuan
+
+Frontend harus terasa seperti mesin photobooth, bukan dashboard atau website.
+
+Guest tidak perlu mengetahui:
+
+- tipe kamera
+- tipe printer
+- session ID
+- status API
+- sync
+- storage
+- konfigurasi perangkat
+- error teknis internal
+
+Jika masalah teknis terjadi, tampilkan pesan yang sederhana dan action yang jelas.
+
+Contoh:
+
+```text
+Printer belum siap.
+Silakan hubungi petugas.
+```
+
+Bukan:
+
+```text
+PrintServiceException: Device connection timeout...
+```
+
+---
+
+# 8. Guest Layout
+
+## 8.1 Landscape
 
 ```text
 ┌──────────────────────────────────────────────────────┐
 │                                                      │
-│                     CAMERA VIEW                      │
-│                                                      │
+│                    CAMERA VIEW                       │
 │                                                      │
 │                                                      │
 ├──────────────────────┬───────────────────────────────┤
-│  Event / Instruction │          [ START PHOTO ]      │
+│  Instruksi singkat   │      [ MULAI FOTO ]          │
 └──────────────────────┴───────────────────────────────┘
 ```
 
-Ini bukan layout fixed. Komponen dapat berubah susunan sesuai ruang yang tersedia.
+Landscape dapat memberikan ruang horizontal yang baik untuk camera viewport dan CTA.
 
----
-
-## 4.3 Portrait composition
-
-Portrait juga harus menjadi mode kelas satu, bukan fallback yang terasa rusak.
-
-Contoh:
+## 8.2 Portrait
 
 ```text
 ┌────────────────────────┐
 │        BRANDING        │
 │                        │
-│     CAMERA VIEW        │
+│      CAMERA VIEW       │
 │                        │
+│       Instruksi        │
 │                        │
-│      INSTRUCTION       │
-│                        │
-│    [ START PHOTO ]     │
+│    [ MULAI FOTO ]      │
 └────────────────────────┘
 ```
 
-Komponen disusun secara vertikal dengan camera viewport tetap menjadi elemen terbesar.
+Portrait harus tetap terasa sebagai mode utama, bukan hasil layout desktop yang dipaksa menjadi vertikal.
 
 ---
 
-# 5. Camera Viewport
+# 9. Camera Viewport
 
-Camera viewport tidak boleh dipaksa mengikuti aspect ratio seluruh layar.
+Camera viewport adalah area paling penting di guest UI.
+
+Jangan memaksa aspect ratio kamera sama dengan aspect ratio layar.
 
 Contoh:
 
@@ -217,64 +346,47 @@ Template      : 6×4
 Print output  : 2×6
 ```
 
-Masing-masing mempunyai aspect ratio sendiri.
+Masing-masing dapat mempunyai aspect ratio sendiri.
 
-Gunakan container khusus untuk preview kamera:
+Aturan:
 
-```text
-.camera-viewport {
-  aspect-ratio: 4 / 3;
-}
-```
-
-Aspect ratio aktual dapat berubah berdasarkan kamera dan konfigurasi event.
-
-### Aturan
-
-- jangan stretch gambar kamera
-- gunakan `object-fit: cover` atau `contain` sesuai mode preview
-- jangan memotong wajah secara tidak terduga
+- jangan stretch preview
+- gunakan `object-fit` sesuai kebutuhan
+- pertahankan framing wajah
 - gunakan safe framing guide bila diperlukan
+- jangan mengorbankan preview kamera hanya untuk memperbesar branding
 
 ---
 
-# 6. Welcome Screen
+# 10. Welcome Screen
 
-Tujuan utama: membuat guest langsung memahami tindakan pertama.
+Tujuan: guest langsung tahu apa yang harus dilakukan.
 
-Komponen:
+Komponen minimum:
 
 ```text
 Branding
-Headline / event title
 Short instruction
 Primary CTA
-Optional secondary information
 ```
 
 Contoh:
 
 ```text
-┌──────────────────────────────────┐
-│                                  │
-│              LOGO                │
-│                                  │
-│       Capture the moment.        │
-│                                  │
-│     Stand here and smile.        │
-│                                  │
-│        [ MULAI FOTO ]            │
-│                                  │
-└──────────────────────────────────┘
+LOGO
+
+Siap foto?
+
+[ MULAI FOTO ]
 ```
 
-Jangan menampilkan pengaturan kamera atau printer.
+Hindari paragraf penjelasan.
 
 ---
 
-# 7. Capture Screen
+# 11. Capture Screen
 
-Saat capture berlangsung, interface harus fokus pada kamera dan countdown.
+Saat capture berlangsung, fokus hanya pada kamera dan countdown.
 
 ```text
 ┌──────────────────────────────────┐
@@ -283,14 +395,12 @@ Saat capture berlangsung, interface harus fokus pada kamera dan countdown.
 │                                  │
 │              3                   │
 │                                  │
-│           GET READY              │
+│            SIAP!                 │
 │                                  │
 └──────────────────────────────────┘
 ```
 
-Countdown harus sangat mudah dilihat.
-
-### State countdown
+State utama:
 
 ```text
 3
@@ -299,94 +409,78 @@ Countdown harus sangat mudah dilihat.
 CAPTURE
 ```
 
-Gunakan animasi pendek yang memberi feedback jelas.
+Countdown harus besar dan terbaca dari jarak beberapa meter.
 
 ---
 
-# 8. Multiple Capture
+# 12. Multiple Capture
 
-Jangan menggunakan istilah teknis seperti `Capture 1/3` sebagai satu-satunya informasi.
+Copy harus singkat dan natural.
 
-Gunakan microcopy yang lebih natural:
-
-```text
-PHOTO 1
-Get ready.
-```
+Gunakan:
 
 ```text
-PHOTO 2
-One more.
+Foto 1
+Foto 2
+Terakhir!
 ```
+
+atau context yang sesuai event.
+
+Hindari copy panjang seperti:
 
 ```text
-PHOTO 3
-Last one!
+Silakan bersiap untuk mengambil foto berikutnya...
 ```
-
-Informasi teknis seperti jumlah foto dapat tetap tersedia dalam overlay kecil jika diperlukan.
 
 ---
 
-# 9. Processing Screen
+# 13. Processing
 
-Processing harus terlihat aktif tetapi tidak membuat guest merasa aplikasi macet.
+Gunakan copy singkat dan nyata.
 
 Contoh:
 
 ```text
-Preparing your photos...
-
-[ subtle progress animation ]
+Menyiapkan foto...
 ```
 
-Jika proses memang membutuhkan waktu cukup lama, tampilkan status nyata.
-
-Jangan menggunakan spinner tanpa konteks untuk proses yang dapat berlangsung beberapa detik.
-
----
-
-# 10. Result Screen
-
-Hasil sesi harus menjadi momen utama setelah capture.
+Jika proses membutuhkan waktu lebih lama:
 
 ```text
-┌──────────────────────────────────────┐
-│                                      │
-│             YOUR PHOTOS              │
-│                                      │
-│          [ PHOTO PREVIEW ]           │
-│                                      │
-│      Printing...                     │
-│                                      │
-│             [ QR CODE ]              │
-│      Scan to get your photos         │
-│                                      │
-│  ── atau masukkan email untuk backup ─│
-│  [email@example.com]  [ Kirim ]      │
-│                                      │
-└──────────────────────────────────────┘
+Menyiapkan foto...
+
+[ progress ]
 ```
 
-QR menjadi metode utama untuk digital delivery.
-
-Email dipertahankan sebagai **backup delivery** — ditampilkan di bawah QR sebagai opsi sekunder jika guest tidak dapat menscan QR. Email tidak bersifat wajib.
-
-### Aturan email di Result Screen
-
-- Ditampilkan setelah QR muncul, bukan sebelumnya
-- Bukan field wajib — guest boleh skip
-- Microcopy: "Atau masukkan email untuk backup"
-- Input dan tombol kirim dalam satu baris agar ringkas
-- Feedback sukses sederhana: "Terkirim ✓"
-
-Jika printer aktif, status printing tetap terlihat tetapi tidak boleh mengambil fokus utama dari hasil.
+Jangan menampilkan istilah teknis.
 
 ---
 
-# 11. Session Gallery
+# 14. Result Screen
 
-QR sebaiknya mengarah ke satu session gallery, bukan satu file.
+Hasil sesi harus menjadi fokus utama.
+
+```text
+YOUR PHOTOS
+
+[ PREVIEW ]
+
+Printing...
+
+[ QR CODE ]
+Scan untuk mengambil foto
+```
+
+QR digunakan untuk membuka session gallery.
+
+Jika printer aktif, status print cukup ditampilkan sebagai informasi sekunder.
+
+---
+
+# 15. Session Gallery
+
+QR mengarah ke satu sesi:
 
 ```text
 Event
@@ -400,108 +494,137 @@ Session
   └── Video
 ```
 
-Guest dapat melakukan:
+Tampilkan hanya media yang tersedia.
 
-- preview
-- download
-- download all
-- share
+Action utama:
 
-Media yang tidak tersedia tidak perlu ditampilkan.
+```text
+[ DOWNLOAD ALL ]
+```
 
 ---
 
-# 12. Guest CTA
+# 16. Guest CTA
 
-Primary CTA harus sangat jelas.
+Primary CTA harus jelas dan besar.
 
 Contoh:
 
 ```text
 [ MULAI FOTO ]
 [ LANJUTKAN ]
-[ SELESAI ]
 [ CETAK ]
+[ SELESAI ]
 ```
 
-### Ukuran
+Target touch area:
 
-Target touch minimum:
+- kontrol umum: minimal sekitar 56 px
+- primary CTA: sekitar 64–72 px
 
-- 56 px untuk kontrol umum
-- 64–72 px untuk primary CTA
-
-Gunakan ukuran berdasarkan viewport dan accessibility, bukan hanya angka tetap.
+Gunakan spacing yang cukup sehingga kesalahan sentuh minimal.
 
 ---
 
-# 13. Theme System
+# 17. Theme System
 
-Tema event harus dapat mengubah visual guest tanpa mengubah layout dasar.
-
-## Design tokens
+Frontend dan backend menggunakan **tone warna yang sama** melalui design tokens.
 
 ```text
 --color-primary
+--color-primary-foreground
 --color-secondary
 --color-background
 --color-surface
 --color-text
 --color-muted
 --color-accent
---color-button
---color-button-text
 --color-border
+--color-success
+--color-warning
+--color-danger
 ```
 
-### Event dapat memiliki
+Theme event dapat mengubah visual frontend tanpa merusak hierarchy dasar.
 
 ```text
 Theme
 ├── Colors
-├── Typography
 ├── Logo
 ├── Background
-├── Buttons
-├── Overlay
-└── Motion preference
+├── Typography
+├── CTA
+└── Optional decorative assets
 ```
 
-Contoh kategori tema:
+Backend tetap memakai semantic colors yang sama.
 
-- Wedding
-- Birthday
-- Corporate
-- Graduation
-- Custom
+Contoh:
+
+```text
+Frontend primary button  → Primary
+Backend primary button   → Primary
+Success frontend         → Success
+Success backend          → Success
+Danger frontend          → Danger
+Danger backend           → Danger
+```
 
 ---
 
-# 14. Typography
+# 18. Color Rules
 
-Typography harus jelas dari jarak beberapa meter.
+Jangan menggunakan warna khusus yang hanya muncul di satu bagian aplikasi tanpa alasan desain.
 
-Rekomendasi hierarchy:
+Gunakan warna berdasarkan makna:
+
+| Token | Fungsi |
+|---|---|
+| Primary | Aksi utama dan identitas aplikasi |
+| Secondary | Aksi sekunder |
+| Success | Siap, berhasil, online |
+| Warning | Perhatian |
+| Danger | Error, delete, destructive action |
+| Muted | Informasi sekunder |
+| Surface | Panel / card / area kerja |
+
+Frontend boleh tampil lebih imersif, tetapi semantic color tetap sama dengan backend.
+
+---
+
+# 19. Typography
+
+Gunakan hierarchy sederhana:
 
 ```text
 Display
-Headline
+Heading
 Body
 Label
 Caption
 ```
 
-Gunakan maksimal 2 keluarga font untuk satu event.
+Jangan menggunakan terlalu banyak ukuran font.
 
-Primary CTA harus mempunyai kontras tinggi terhadap background.
+Frontend:
+
+- headline jelas
+- CTA mudah dibaca
+- caption minimal
+
+Backend:
+
+- heading ringkas
+- label jelas
+- tabel dan form padat tetapi tetap terbaca
+
+Gunakan maksimal dua font family pada satu theme/event.
 
 ---
 
-# 15. Spacing
+# 20. Spacing
 
-Gunakan spacing token konsisten.
-
-Contoh:
+Gunakan spacing token yang konsisten.
 
 ```text
 4   = 4px
@@ -514,144 +637,160 @@ Contoh:
 64  = 64px
 ```
 
-Pada layar besar, spacing dapat menggunakan responsive scaling.
+Backend dapat lebih padat daripada frontend, tetapi tetap berasal dari token yang sama.
 
 ---
 
-# 16. Motion
+# 21. Components
 
-Motion digunakan untuk:
+## Frontend
 
-- perpindahan state
-- countdown
-- capture feedback
-- processing feedback
-- result appearance
+Gunakan komponen seperlunya:
+
+```text
+GuestShell
+CameraViewport
+PrimaryButton
+Countdown
+Instruction
+PhotoPreview
+ResultView
+QRCode
+StatusMessage
+```
+
+Hindari membuat abstraksi komponen hanya demi memecah file.
+
+## Backend
+
+Gunakan Flowbite untuk komponen umum:
+
+```text
+Button
+Input
+Select
+Modal
+Dropdown
+Badge
+Alert
+Table
+Tabs
+Drawer
+Toast
+```
+
+Komponen harus dipakai sesuai konteks, bukan dipaksakan ke semua halaman.
+
+---
+
+# 22. Copywriting Rules
+
+Copy harus:
+
+- pendek
+- langsung
+- natural
+- sesuai konteks
+- tidak terlalu formal
+- tidak terdengar seperti output AI
+
+Utamakan kata yang dipahami pengguna umum.
+
+Contoh baik:
+
+```text
+Mulai Foto
+Siap?
+Senyum!
+Terakhir!
+Menyiapkan foto...
+Cetak selesai
+Scan untuk mengambil foto
+```
+
+Hindari:
+
+```text
+Silakan melakukan inisiasi proses pengambilan gambar.
+Mohon menunggu sementara sistem melakukan pemrosesan data multimedia.
+```
+
+---
+
+# 23. Admin / Backend Layout
+
+Backend adalah control center.
+
+Desktop:
+
+```text
+┌─────────────────────────────────────────────────────┐
+│ Logo                  Event              Account     │
+├────────────┬────────────────────────────────────────┤
+│ Dashboard  │                                        │
+│ Events     │               CONTENT                  │
+│ Templates  │                                        │
+│ Sessions   │                                        │
+│ Devices    │                                        │
+│ Settings   │                                        │
+└────────────┴────────────────────────────────────────┘
+```
+
+Gunakan sidebar desktop dan navigation yang lebih ringkas pada mobile.
+
+---
+
+# 24. Admin Dashboard
+
+Dashboard fokus pada kondisi booth, bukan dekorasi.
+
+Prioritas informasi:
+
+1. Booth status
+2. Camera status
+3. Printer status
+4. Session activity
+5. Operational actions
 
 Contoh:
 
 ```text
-Welcome
-  ↓ fade
-Ready
-  ↓ scale
-Countdown
-  ↓ punch
-Capture
-  ↓ smooth transition
-Result
+Booth Status
+
+Camera      ● Ready
+Printer     ● Ready
+Storage     72% free
+
+Sessions today   48
+Prints today     47
 ```
 
-Hindari animasi yang:
-
-- terlalu cepat
-- terlalu ramai
-- mengganggu preview kamera
-- menghambat user mengambil foto
+Jangan memenuhi dashboard dengan card statistik yang tidak membantu operator.
 
 ---
 
-# 17. Error UX untuk Guest
+# 25. Admin Navigation
 
-Error teknis harus diterjemahkan ke bahasa sederhana.
-
-### Jangan
+Menu awal cukup:
 
 ```text
-Camera SDK error: EDS_ERR_DEVICE_BUSY
+Dashboard
+Events
+Templates
+Sessions
+Devices
+Settings
 ```
 
-### Gunakan
+Menu dapat bertambah jika fitur benar-benar dibutuhkan.
 
-```text
-Camera sedang tidak siap.
-Kami sedang mencoba menghubungkannya kembali.
-```
-
-Jika tindakan user diperlukan:
-
-```text
-Camera belum siap.
-Silakan coba lagi.
-
-[ COBA LAGI ]
-```
-
-Detail teknis hanya diberikan kepada admin.
+Operator melihat menu lebih sedikit berdasarkan permission.
 
 ---
 
-# 18. Admin Experience
+# 26. Admin — Event
 
-Admin menggunakan device terpisah sehingga dapat menggunakan antarmuka yang jauh lebih informatif.
-
-Target:
-
-- laptop
-- desktop
-- tablet
-- smartphone
-
-Admin UI adalah **responsive web application**, bukan kiosk UI.
-
----
-
-# 19. Admin Navigation
-
-Desktop/tablet:
-
-```text
-┌───────────────┬─────────────────────────────────┐
-│ Dashboard     │                                 │
-│ Events        │           Content               │
-│ Templates     │                                 │
-│ Sessions      │                                 │
-│ Devices       │                                 │
-│ Settings      │                                 │
-└───────────────┴─────────────────────────────────┘
-```
-
-Mobile:
-
-```text
-┌────────────────────────┐
-│ ☰   BoothOS       ●    │
-├────────────────────────┤
-│                        │
-│      Dashboard         │
-│                        │
-└────────────────────────┘
-```
-
----
-
-# 20. Admin Dashboard
-
-Dashboard harus berfokus pada kondisi booth.
-
-```text
-┌──────────────────────────────────────────────┐
-│ BOOTH STATUS                                 │
-├──────────────────────────────────────────────┤
-│                                              │
-│ Camera        ● Connected                    │
-│ Printer       ● Ready                        │
-│ Storage       ● 72% free                     │
-│ Browser       ● Connected                    │
-│                                              │
-├──────────────────────────────────────────────┤
-│                                              │
-│ Sessions Today        48                     │
-│ Prints Today          47                     │
-│                                              │
-└──────────────────────────────────────────────┘
-```
-
----
-
-# 21. Event Setup
-
-Event adalah pusat konfigurasi.
+Halaman event harus fokus pada konfigurasi yang benar-benar digunakan booth.
 
 ```text
 Event
@@ -663,32 +802,13 @@ Event
 └── Sharing
 ```
 
-Admin membuat konfigurasi sebelum event berjalan.
+Gunakan tabs atau section yang jelas, bukan satu halaman panjang dengan terlalu banyak panel.
 
 ---
 
-# 22. Live Booth Control
+# 27. Admin — Devices
 
-Pisahkan konfigurasi dari kontrol langsung.
-
-```text
-Live Booth
-├── Camera Status
-├── Printer Status
-├── Current Session
-├── Reprint
-├── Pause Booth
-├── Resume Booth
-└── Restart Session
-```
-
-Tindakan berisiko harus memiliki confirmation.
-
----
-
-# 23. Device Management
-
-Admin harus dapat melihat perangkat inti.
+Tampilkan device dalam konteks operasional.
 
 ```text
 Camera
@@ -697,346 +817,361 @@ Camera
 Printer
 ● Ready
 
-Bridge
-● Connected
-
 Storage
-● Healthy
+● 72%
 ```
 
-Jika ada masalah:
+Action:
 
 ```text
-⚠ Printer Offline
+[ TEST CAMERA ]
+[ TEST PRINTER ]
 ```
 
-atau:
-
-```text
-⚠ Camera disconnected
-```
+Detail teknis tersedia saat dibutuhkan, bukan selalu terbuka.
 
 ---
 
-# 24. Live Preview Admin
+# 28. Admin — Session
 
-Admin dapat melihat preview kamera bila diperlukan.
+Session history menggunakan tabel Flowbite pada desktop.
+
+Kolom inti:
 
 ```text
-┌──────────────────────┐
-│                      │
-│    LIVE CAMERA       │
-│                      │
-└──────────────────────┘
-
-Camera: Connected
-Session: Ready
+Time
+Session
+Photos
+Print
+Status
+Action
 ```
 
-Live preview admin sebaiknya tidak menjadi kebutuhan untuk operasi normal dan tidak boleh membebani jaringan/cloud tanpa alasan.
+Action utama:
+
+```text
+View
+Reprint
+```
+
+Hindari menampilkan semua metadata pada tabel utama.
 
 ---
 
-# 25. Template Editor
+# 29. Admin — Operator
 
-Template editor adalah bagian visual utama Admin Experience.
-
-Desktop:
+Admin dapat mengelola operator:
 
 ```text
-┌────────────┬──────────────────────────┬─────────────┐
-│ Assets     │                          │ Properties  │
-│            │          CANVAS          │             │
-│ Photo      │                          │ Position    │
-│ Text       │          ┌───────┐       │ Size        │
-│ Image      │          │ PHOTO │       │ Font        │
-│ Shape      │          └───────┘       │ Color       │
-└────────────┴──────────────────────────┴─────────────┘
+Operator
+├── Name
+├── Status
+├── PIN
+└── Access
 ```
 
-Komponen awal:
+Operator tidak perlu memiliki account UI yang kompleks jika kebutuhan hanya login PIN.
 
-- Photo slot
-- Text
-- Image/logo
-- Shape
-- Background
+Admin dapat:
 
-Tidak perlu membuat editor serumit Canva pada MVP.
+- membuat operator
+- mengubah PIN
+- menonaktifkan operator
+- melihat operator aktif
 
 ---
 
-# 26. Mobile Admin
+# 30. Operator Mode
 
-Mobile cocok untuk:
+Operator harus memiliki tampilan yang lebih sederhana daripada Admin.
 
-- melihat status
-- mengganti event
-- melihat session
-- reprint
-- mengubah setting sederhana
-- troubleshooting
+Fokus:
 
-Mobile tidak menjadi target utama untuk template editor kompleks.
+```text
+Booth Status
+Current Event
+Current Session
+Camera
+Printer
+Reprint
+Pause / Resume
+```
+
+Operator tidak melihat menu konfigurasi sistem jika tidak mempunyai izin.
 
 ---
 
-# 27. Responsive Strategy
+# 31. Admin — All Access
 
-Jangan mendefinisikan desain berdasarkan perangkat tertentu saja.
+Admin memiliki akses penuh ke seluruh interface dan fungsi.
 
-Gunakan tiga kelas pengalaman:
+Destructive action harus tetap menggunakan confirmation:
 
 ```text
-Guest Booth
-Adaptive touch experience
+Hapus template?
 
-Admin Desktop/Tablet
-Full control experience
-
-Admin Mobile
-Compact control experience
+[TIDAK] [HAPUS]
 ```
 
-### Guest
+Gunakan warna danger hanya pada aksi yang benar-benar destructive.
 
-Gunakan adaptive layout berdasarkan:
+---
 
-- viewport width
-- viewport height
-- aspect ratio
-- safe area
+# 32. Admin Mobile
 
-### Admin
+Mobile admin bukan versi desktop yang dipaksa mengecil.
 
 Gunakan:
 
-- responsive grid
-- collapsible navigation
-- mobile bottom actions jika sesuai
-- table menjadi card/list pada layar kecil
+- top bar sederhana
+- drawer / bottom navigation bila diperlukan
+- list yang mudah disentuh
+- action utama tetap terlihat
+
+Contoh:
+
+```text
+┌───────────────────────┐
+│ ☰  BoothOS       ●    │
+├───────────────────────┤
+│ Booth Ready           │
+│                       │
+│ Camera    ● Ready     │
+│ Printer   ● Ready     │
+│                       │
+│ [ REPRINT ]           │
+│                       │
+│ Sessions              │
+└───────────────────────┘
+```
 
 ---
 
-# 28. Kiosk Behavior
+# 33. Template Editor
 
-Guest mode harus berjalan fullscreen.
+Template editor hanya digunakan pada backend.
 
-Tidak boleh ada akses langsung ke:
+Struktur desktop:
+
+```text
+┌────────────┬────────────────────────┬──────────────┐
+│ Assets     │ Canvas                 │ Properties   │
+│            │                        │              │
+│ Photo      │      ┌─────────┐       │ Position     │
+│ Text       │      │  PHOTO  │       │ Size         │
+│ Image      │      └─────────┘       │ Typography   │
+│ Shape      │                        │ Alignment    │
+└────────────┴────────────────────────┴──────────────┘
+```
+
+Jangan membuat editor seperti Canva penuh pada MVP.
+
+Mulai dari:
+
+- photo slot
+- text
+- image/logo
+- basic positioning
+- basic sizing
+- alignment
+
+---
+
+# 34. Motion
+
+Motion digunakan untuk memberikan feedback:
+
+- state transition
+- countdown
+- capture
+- processing
+- result
+- print status
+
+Hindari animasi dekoratif yang memperlambat task.
+
+Guest motion harus singkat dan jelas.
+
+Backend motion harus minimal.
+
+---
+
+# 35. Error Handling
+
+## Frontend
+
+Tampilkan hanya informasi yang dibutuhkan guest.
+
+```text
+Printer belum siap.
+Silakan hubungi petugas.
+```
+
+## Backend
+
+Operator harus mendapat informasi yang lebih berguna:
+
+```text
+Printer offline
+Last connected: 18:42
+
+[ RETRY ]
+```
+
+Admin dapat melihat detail teknis/log jika dibutuhkan.
+
+```text
+Error detail
+Device: DNP DS-RX1
+Status: offline
+Last response: timeout
+```
+
+Jangan menampilkan stack trace kepada operator secara default.
+
+---
+
+# 36. State & Status
+
+Gunakan pola status yang konsisten di frontend dan backend.
+
+```text
+● Ready
+● Processing
+● Printing
+● Offline
+● Error
+```
+
+Semantic colors berasal dari token yang sama.
+
+Status tidak hanya mengandalkan warna; gunakan label atau icon agar tetap jelas.
+
+---
+
+# 37. Kiosk Behavior
+
+Guest frontend harus dapat dijalankan dalam fullscreen/kiosk.
+
+Tidak boleh ada akses guest ke:
 
 - browser controls
-- desktop
+- URL navigation
 - developer tools
-- settings aplikasi
+- admin route
+- system settings
 
-Admin dapat keluar menggunakan mekanisme khusus seperti:
-
-```text
-Hidden admin gesture
-→ Admin PIN
-→ Control Panel
-```
+Akses admin dilakukan dari device admin atau mekanisme operator yang ditentukan sistem.
 
 ---
 
-# 29. Design Tokens
+# 38. Responsive Rules
 
-Seluruh aplikasi menggunakan token bersama.
+Guest:
 
-```text
-colors
-spacing
-radius
-shadow
-typography
-motion
-z-index
-breakpoints
-```
+- adaptive portrait/landscape
+- camera-first
+- touch-first
+- minimal content
 
-Guest dan Admin boleh mempunyai density berbeda tetapi tidak boleh memiliki sistem visual yang saling bertentangan.
+Admin:
 
----
+- desktop: sidebar + content
+- tablet: compact sidebar/navigation
+- mobile: drawer/top bar + stacked content
 
-# 30. Component Groups
-
-## Guest
-
-```text
-BoothShell
-Branding
-CameraViewport
-Instruction
-PrimaryCTA
-Countdown
-CaptureStatus
-ProcessingState
-ResultPreview
-QRCode
-SessionGalleryLink
-```
-
-## Admin
-
-```text
-AdminShell
-Sidebar
-TopBar
-StatusCard
-DeviceStatus
-EventCard
-SessionList
-TemplateEditor
-PropertyPanel
-ConfirmDialog
-Toast
-```
+Jangan sekadar mengecilkan desktop layout.
 
 ---
 
-# 31. Accessibility
+# 39. Design Token Implementation
 
-Prioritas accessibility:
-
-- kontras cukup
-- ukuran teks dapat dibaca dari jarak booth
-- touch target besar
-- tidak bergantung pada warna saja untuk status
-- focus state untuk keyboard/admin
-- reduced motion bila pengguna/perangkat mengaktifkannya
-
-Status gunakan kombinasi warna + ikon + label.
+Simpan token pada satu sumber agar frontend dan backend tidak mempunyai warna yang berbeda.
 
 Contoh:
 
 ```text
-● Connected
-⚠ Needs attention
-× Offline
+/design-tokens
+    colors.ts
+    typography.ts
+    spacing.ts
+    radius.ts
+    shadows.ts
 ```
 
----
+Guest Tailwind menggunakan token yang sama.
 
-# 32. Performance
-
-Guest UI harus ringan karena selama event aplikasi berjalan terus-menerus.
-
-Prioritas:
-
-- minimalkan JavaScript yang tidak perlu
-- lazy load editor/admin modules
-- jangan memuat semua asset event sekaligus
-- gunakan object URL untuk preview lokal
-- jangan meng-upload original image sebelum dibutuhkan
-- gunakan local processing untuk workflow normal
-- hindari animasi berat
+Flowbite backend juga harus ditheme menggunakan token yang sama.
 
 ---
 
-# 33. Prinsip Media Processing
+# 40. Aturan Anti-Overdesign
 
-Original file tidak boleh dioverwrite.
+Jangan menambahkan:
 
-Struktur:
+- card tanpa fungsi
+- badge yang tidak memberi informasi
+- icon tanpa makna
+- copy penjelasan panjang
+- divider berlebihan
+- modal untuk hal sederhana
+- statistik dekoratif
+- tombol duplikat
+- halaman konfigurasi yang terlalu panjang
 
-```text
-session/
-├── original/
-├── processed/
-└── output/
-```
+Sebelum menambahkan komponen, jawab:
 
-Contoh:
+> Apakah komponen ini membantu user menyelesaikan task?
 
-```text
-original/01.jpg
-processed/01.jpg
-output/print.jpg
-```
-
-Ini memungkinkan retake, reprocessing, dan reprint tanpa mengambil foto ulang.
+Jika tidak, jangan tampilkan.
 
 ---
 
-# 34. Design Direction
+# 41. Design Checklist
 
-Arah visual utama:
+## Frontend
 
-> **Premium, clean, immersive, natural.**
+- [ ] Mudah digunakan tanpa bantuan operator
+- [ ] Camera viewport menjadi fokus utama
+- [ ] Bisa portrait dan landscape
+- [ ] Touch target besar
+- [ ] Copy singkat
+- [ ] Tidak ada menu teknis
+- [ ] Pure Tailwind
+- [ ] Warna mengikuti shared tokens
 
-Hindari:
+## Backend
 
-- dashboard-like guest screen
-- terlalu banyak card
-- terlalu banyak border
-- gradient berlebihan
-- ikon kecil
-- animasi berlebihan
-- UI yang terasa seperti software teknis
+- [ ] Admin dan Operator terpisah
+- [ ] Admin memiliki all access
+- [ ] Operator login menggunakan PIN
+- [ ] Permission jelas
+- [ ] Flowbite digunakan sebagai component foundation
+- [ ] Dashboard tidak penuh card dekoratif
+- [ ] Copy singkat dan kontekstual
+- [ ] Warna mengikuti shared tokens
 
-Gunakan:
+## Konsistensi
 
-- whitespace yang cukup
-- typography kuat
-- camera preview dominan
-- CTA besar
-- visual event sebagai identitas
-- motion singkat dan bermakna
-
----
-
-# 35. Prinsip Utama
-
-```text
-THE BOOTH SHOULD FEEL LIKE A PRODUCT.
-THE ADMIN SHOULD FEEL LIKE A WEB APP.
-```
-
-Guest datang untuk mengambil foto, bukan menggunakan software.
-
-Admin datang untuk mengontrol software, bukan mengambil foto.
-
-Karena itu kedua experience harus berbeda secara komposisi tetapi tetap konsisten melalui satu design system.
+- [ ] Primary color sama
+- [ ] Semantic colors sama
+- [ ] Typography selaras
+- [ ] Radius selaras
+- [ ] Status behavior selaras
+- [ ] Tidak ada visual language yang bertentangan antara frontend dan backend
 
 ---
 
-# 36. MVP Design Scope
+# 42. Prinsip Akhir
 
-### Guest
+Desain aplikasi mengikuti prinsip:
 
-- [ ] Adaptive landscape/portrait welcome screen
-- [ ] Camera viewport
-- [ ] Start CTA
-- [ ] Countdown
-- [ ] Multiple capture state
-- [ ] Processing state
-- [ ] Result preview
-- [ ] Print status
-- [ ] QR/session access
-- [ ] Kiosk mode
+> **Simple for guests, powerful for operators, complete for admins.**
 
-### Admin
+Guest hanya melihat hal yang diperlukan untuk mengambil dan menerima foto.
 
-- [ ] Dashboard
-- [ ] Event configuration
-- [ ] Camera status
-- [ ] Printer status
-- [ ] Session history
-- [ ] Reprint
-- [ ] Basic settings
-- [ ] Basic template editor
-- [ ] Responsive desktop/tablet/mobile layout
+Operator mendapatkan kontrol operasional yang cepat.
 
----
+Admin mendapatkan seluruh akses konfigurasi dan pengelolaan.
 
-# 37. Kesimpulan
-
-Aplikasi tidak menggunakan pendekatan **portrait-first** maupun **landscape-first**.
-
-Pendekatan yang digunakan adalah:
-
-> **Adaptive, camera-first, touch-first.**
-
-Orientasi layar hanya memengaruhi komposisi layout. Camera viewport, CTA, branding, dan informasi utama akan disusun ulang berdasarkan ruang yang tersedia.
-
-Dengan pendekatan ini, aplikasi dapat digunakan pada berbagai konfigurasi booth tanpa perlu membuat desain baru untuk setiap ukuran atau orientasi perangkat.
+Frontend dan backend tetap terlihat sebagai satu produk melalui shared design tokens, sementara implementasinya tetap berbeda: **pure Tailwind untuk frontend guest dan Flowbite untuk backend admin/operator**.
