@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Modal upload frame PNG kini langsung terhubung dengan slot koordinat 3 foto strip serta mendukung *drag & drop*.
 - **Reviu Menyeluruh Salinan Teks (*Copywriting*) & Form Label Admin**:
   - Merapikan seluruh teks dan microcopy di Dashboard, Acara, Perangkat, Sesi Foto, Template, Pengaturan, dan Log agar ringkas, lugas (*to the point*), dan kontekstual.
+  - Menghapus baris deskripsi preset pada card template admin agar tampilan lebih bersih dan terfokus.
+  - Menyesuaikan modal upload frame agar bersifat umum (tidak terikat pada dimensi/teks kaku tertentu).
   - Menyeragamkan seluruh label input form tanpa tanda titik dua dan deskripsi redundan.
   - Mempersingkat teks pada dialog konfirmasi modal dan tombol aksi.
 - **Penyempurnaan Responsivitas Antarmuka**:

@@ -13,7 +13,7 @@ function now() { return new Date().toISOString() }
 export const TEMPLATE_STRIP_2X6_WHITE: PhotoTemplate = {
   id:          'preset-strip-2x6-white',
   name:        'Classic White Strip',
-  description: 'Strip photobooth klasik warna putih bersih, 3 foto vertikal',
+  description: '',
   category:    'strip',
   totalSlots:  3,
   canvas: { width: 600, height: 1800, background: '#fdfdfd', dpi: 300 },
@@ -71,7 +71,7 @@ export const TEMPLATE_STRIP_2X6_WHITE: PhotoTemplate = {
 export const TEMPLATE_STRIP_2X6_DARK: PhotoTemplate = {
   id:          'preset-strip-2x6-dark',
   name:        'Midnight Noir Strip',
-  description: 'Strip hitam elegan dengan aksen amber emas',
+  description: '',
   category:    'strip',
   totalSlots:  3,
   canvas: { width: 600, height: 1800, background: '#0d0d0d', dpi: 300 },

@@ -98,7 +98,7 @@
               class="px-2 py-0.5 rounded-md bg-zinc-800/90 border border-zinc-700/80 text-zinc-400 text-[10px] font-mono tracking-wider flex items-center gap-1"
             >
               <Icon name="lucide:lock" class="w-3 h-3 text-amber-400/80" />
-              <span>Preset Bawaan</span>
+              <span>Preset</span>
             </span>
             <span
               v-else
@@ -119,10 +119,9 @@
           </div>
 
           <!-- Info -->
-          <div class="flex flex-col gap-0.5">
+          <div class="flex flex-col gap-1">
             <h3 class="text-sm font-bold text-zinc-100 truncate" :title="tpl.name">{{ tpl.name }}</h3>
-            <p class="text-xs text-zinc-400 truncate">{{ tpl.description || 'Template photobooth' }}</p>
-            <p class="text-[10px] text-zinc-500 font-mono mt-1">{{ tpl.canvas.width }} × {{ tpl.canvas.height }} px · {{ tpl.canvas.dpi || 300 }} DPI</p>
+            <p class="text-[10px] text-zinc-500 font-mono">{{ tpl.canvas.width }} × {{ tpl.canvas.height }} px · {{ tpl.canvas.dpi || 300 }} DPI</p>
           </div>
 
           <!-- Actions -->
@@ -133,7 +132,7 @@
               type="button"
               @click="duplicateTemplate(tpl)"
               class="flex-1 py-2 px-3 rounded-xl bg-zinc-850 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 hover:text-amber-400 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-sm"
-              title="Duplikat preset bawaan untuk membuat template kustom"
+              title="Duplikat preset untuk kustomisasi"
             >
               <Icon name="lucide:copy" class="w-3.5 h-3.5 text-amber-400" />
               <span>Duplikat</span>
@@ -154,7 +153,7 @@
                 type="button"
                 @click="duplicateTemplate(tpl)"
                 class="p-2 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-750 text-zinc-200 transition-colors"
-                title="Duplikat Template"
+                title="Duplikat"
               >
                 <Icon name="lucide:copy" class="w-3.5 h-3.5" />
               </button>
@@ -163,7 +162,7 @@
                 type="button"
                 @click="confirmDelete(tpl)"
                 class="p-2 rounded-xl border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors"
-                title="Hapus Template"
+                title="Hapus"
               >
                 <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
               </button>
@@ -177,7 +176,7 @@
     <!-- ── Flowbite Modal: Upload / Ganti Frame PNG ────────────── -->
     <FlowbiteModal
       v-model="showFrameModal"
-      :title="editingTemplateId ? 'Ganti Frame PNG' : 'Upload Frame Strip (2×6)'"
+      :title="editingTemplateId ? 'Ganti Frame PNG' : 'Upload Frame PNG'"
       icon="lucide:upload-cloud"
       size="lg"
     >
@@ -211,7 +210,7 @@
               <p class="text-xs font-bold text-zinc-200">
                 Pilih file frame PNG atau tarik ke sini
               </p>
-              <p class="text-[11px] text-zinc-500 mt-0.5">PNG transparan 600 × 1800 px (3-Foto Strip 2×6)</p>
+              <p class="text-[11px] text-zinc-500 mt-0.5">PNG transparan (Canva / Photoshop)</p>
             </div>
           </div>
 
@@ -259,16 +258,13 @@
 
         <!-- 2. Format Layout (Hanya saat baru) -->
         <div v-if="!editingTemplateId" class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-zinc-300">Format & Tata Letak</label>
+          <label class="text-xs font-semibold text-zinc-300">Tata Letak Foto</label>
           <div class="p-3 rounded-xl border bg-amber-500/10 border-amber-500/40 text-amber-400 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <Icon name="lucide:layout-grid" class="w-4 h-4" />
-              <span class="text-xs font-bold text-zinc-100">Strip 2×6 (3 Foto Vertikal)</span>
+              <span class="text-xs font-bold text-zinc-100">Strip (3 Foto Vertikal)</span>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] text-zinc-400 font-mono">600 × 1800 px</span>
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500 text-zinc-950 font-bold">3 Foto</span>
-            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500 text-zinc-950 font-bold">3 Foto</span>
           </div>
         </div>
 
@@ -278,7 +274,7 @@
           <input
             v-model="frameTemplateName"
             type="text"
-            placeholder="Contoh: Sarah & Dimas Wedding Strip"
+            placeholder="Contoh: Sarah & Dimas Wedding"
             class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-100 placeholder-zinc-600 focus:border-amber-500 outline-none transition-colors"
           />
         </div>
