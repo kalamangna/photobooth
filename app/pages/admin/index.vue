@@ -200,7 +200,11 @@ const totalShotsToday = computed(() => {
 })
 
 const todayPrintsCount = computed(() => {
-  return todaySessions.value.filter(s => s.outputUrl).length
+  return todaySessions.value.reduce((acc, s) => {
+    if (s.printCount && s.printCount > 0) return acc + s.printCount
+    if (s.printedAt || s.printJobId) return acc + 1
+    return acc
+  }, 0)
 })
 
 const pendingJobsCount = computed(() => {

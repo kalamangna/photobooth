@@ -9,18 +9,20 @@ Aplikasi Web Photobooth Modern berbasis Nuxt 4, Tailwind CSS, Pinia, dan Indexed
 ### 1. Guest Kiosk UI
 * **Layar Awal**: Antarmuka interaktif responsif (portrait / landscape) dengan target sentuh ramah kiosk.
 * **Pilihan Template**: Pemilihan bingkai foto (Strip 2×6 dan Grid 4×6) dengan pratinjau kanvas visual.
-* **Sesi Pemotretan**: Hitung mundur (countdown 3s / 5s), shutter kamera interaktif, dan microcopy pemandu foto.
-* **Hasil & Unduh**: Generator QR Code untuk unduhan langsung di smartphone tamu serta formulir pencatatan email cadangan.
+* **Sesi Pemotretan**: Hitung mundur (countdown 3s / 5s), shutter kamera interaktif dengan kilatan flash, dan microcopy pemandu foto.
+* **Audio Feedback Murni**: Sintesis suara hitung mundur (*beep*), jepretan kamera mekanikal, dan melodi penyelesaian (*success chime*) berbasis Web Audio API.
+* **Hasil & Unduh**: Generator QR Code beresolusi tinggi untuk unduhan langsung di smartphone tamu (dukungan Cloudinary publik untuk akses via 4G/5G/Wi-Fi bebas) serta formulir pencatatan email cadangan.
 
 ### 2. Admin & Operator Control Center
 * **Role-Based Access Control (RBAC)**:
   * **Operator** (PIN Default: `123456`): Mengakses Dashboard pemantauan, Konfigurasi Acara, Sesi Foto, dan Diagnostik Perangkat.
-  * **Admin** (PIN Default: `888888`): Akses penuh termasuk Editor Template Kanvas, Pengaturan Keamanan PIN, dan Log Audit Sistem.
+  * **Admin** (PIN Default: `888888`): Akses penuh termasuk Editor Template Kanvas, Pengaturan Keamanan PIN, Penyimpanan Cloudinary, dan Log Audit Sistem.
 * **Dashboard Operasional**: Status booth online, pemantau perangkat (kamera & printer), statistik sesi dan cetak hari ini, serta reset booth remote.
 * **Pengaturan Acara**: Konfigurasi nama acara, durasi countdown, template bawaan, otomasi cetak, dan efek audio.
-* **Manajemen Sesi Foto**: Tabel Flowbite lengkap dengan filter rentang waktu, pratinjau resolusi tinggi, ekspor JSON, dan eksekusi cetak fisik.
+* **Manajemen Sesi Foto**: Tabel Flowbite lengkap dengan status cetak akurat (*Belum Dicetak* vs *Tercetak*), filter rentang waktu, pratinjau resolusi tinggi, ekspor JSON, dan eksekusi cetak fisik.
+* **Penyimpanan Cloud (Cloudinary)**: Integrasi unggah otomatis ke CDN gambar publik dengan struktur folder per acara dan per sesi.
 * **Diagnostik Perangkat**: Pengujian kamera langsung (live viewfinder) dan uji cetak printer dengan pola kalibrasi 300 DPI.
-* **Log Audit**: Riwayat jejak aktivitas sistem dan diagnosa error.
+* **Log Audit & Danger Zone**: Riwayat jejak aktivitas sistem, pembersihan log, serta pembersihan data sesi hari ini / semua sesi.
 
 ---
 

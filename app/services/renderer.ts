@@ -95,7 +95,7 @@ export async function renderTemplate(
 
   return {
     canvas,
-    dataUrl: canvas.toDataURL('image/jpeg', 0.95),
+    dataUrl: canvas.toDataURL('image/png'),
     width:   W,
     height:  H,
   }

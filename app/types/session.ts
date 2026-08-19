@@ -36,8 +36,10 @@ export interface Session {
   totalShots: number
   currentShot: number
   outputUrl: string | null
+  cloudUrl?: string | null
   printJobId: string | null
-  customerName: string | null
+  printedAt?: string | null
+  printCount?: number
   customerEmail: string | null
   startedAt: string
   completedAt: string | null
@@ -105,8 +107,10 @@ export function createSession(options: {
     totalShots,
     currentShot: 0,
     outputUrl: null,
+    cloudUrl: null,
     printJobId: null,
-    customerName: null,
+    printedAt: null,
+    printCount: 0,
     customerEmail: null,
     startedAt: new Date().toISOString(),
     completedAt: null,

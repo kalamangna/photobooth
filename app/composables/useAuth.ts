@@ -1,26 +1,52 @@
 import { ref, computed } from 'vue'
 import { settingsDB } from '~/services/db'
+import { hashPin, verifyPinHash, isHashedPin } from '~/utils/crypto'
 
 export type UserRole = 'admin' | 'operator'
 
-export const DEFAULT_ADMIN_PIN = '888888'
+export const DEFAULT_ADMIN_PIN    = '888888'
 export const DEFAULT_OPERATOR_PIN = '123456'
 
 export const useAuth = () => {
   const currentRole = useState<UserRole | null>('auth_role', () => null)
-  const isLoaded = useState<boolean>('auth_loaded', () => false)
+  const isLoaded    = useState<boolean>('auth_loaded', () => false)
 
-  const adminPin = ref(DEFAULT_ADMIN_PIN)
-  const operatorPin = ref(DEFAULT_OPERATOR_PIN)
+  // In-memory: simpan hash (bukan PIN mentah) agar tidak ada PIN plaintext di runtime
+  const adminPinHash    = ref<string>('')
+  const operatorPinHash = ref<string>('')
 
-  // Load saved PINs from DB
+  // ─── Load PINs (sebagai hash) dari DB ────────────────────────
   async function loadPins() {
     try {
-      const savedAdminPin = await settingsDB.get<string>('adminPin')
-      if (savedAdminPin) adminPin.value = savedAdminPin
+      // Ambil nilai yang tersimpan (bisa hash baru, bisa plaintext lama)
+      const savedAdmin    = await settingsDB.get<string>('adminPin')
+      const savedOperator = await settingsDB.get<string>('operatorPin')
 
-      const savedOperatorPin = await settingsDB.get<string>('operatorPin')
-      if (savedOperatorPin) operatorPin.value = savedOperatorPin
+      // Migrasi otomatis: jika tersimpan plaintext → hash dan simpan ulang
+      if (savedAdmin) {
+        if (isHashedPin(savedAdmin)) {
+          adminPinHash.value = savedAdmin
+        } else {
+          // PIN lama belum di-hash — hash sekarang dan persist
+          const hashed = await hashPin(savedAdmin)
+          adminPinHash.value = hashed
+          await settingsDB.set('adminPin', hashed)
+        }
+      } else {
+        adminPinHash.value = await hashPin(DEFAULT_ADMIN_PIN)
+      }
+
+      if (savedOperator) {
+        if (isHashedPin(savedOperator)) {
+          operatorPinHash.value = savedOperator
+        } else {
+          const hashed = await hashPin(savedOperator)
+          operatorPinHash.value = hashed
+          await settingsDB.set('operatorPin', hashed)
+        }
+      } else {
+        operatorPinHash.value = await hashPin(DEFAULT_OPERATOR_PIN)
+      }
 
       if (typeof sessionStorage !== 'undefined') {
         const savedRole = sessionStorage.getItem('photobooth_auth_role') as UserRole | null
@@ -29,24 +55,33 @@ export const useAuth = () => {
         }
       }
     } catch {
-      // fallback to defaults
+      // Fallback ke default hash
+      adminPinHash.value    = await hashPin(DEFAULT_ADMIN_PIN)
+      operatorPinHash.value = await hashPin(DEFAULT_OPERATOR_PIN)
     } finally {
       isLoaded.value = true
     }
   }
 
-  // Verify entered PIN and authenticate with appropriate role
+  // ─── Verifikasi PIN mentah terhadap hash tersimpan ────────────
   async function verifyPin(pin: string): Promise<UserRole | null> {
     await loadPins()
 
     const trimmed = pin.trim()
-    if (trimmed === adminPin.value) {
+
+    // Verifikasi terhadap hash tersimpan (atau plaintext lama via backward-compat)
+    const isAdmin    = await verifyPinHash(trimmed, adminPinHash.value)
+    const isOperator = !isAdmin && await verifyPinHash(trimmed, operatorPinHash.value)
+
+    if (isAdmin) {
       currentRole.value = 'admin'
       if (typeof sessionStorage !== 'undefined') {
         sessionStorage.setItem('photobooth_auth_role', 'admin')
       }
       return 'admin'
-    } else if (trimmed === operatorPin.value) {
+    }
+
+    if (isOperator) {
       currentRole.value = 'operator'
       if (typeof sessionStorage !== 'undefined') {
         sessionStorage.setItem('photobooth_auth_role', 'operator')
@@ -57,18 +92,20 @@ export const useAuth = () => {
     return null
   }
 
-  // Update PINs (Admin only)
+  // ─── Update PIN — simpan sebagai hash ────────────────────────
   async function updateAdminPin(newPin: string): Promise<boolean> {
     if (newPin.trim().length !== 6) return false
-    adminPin.value = newPin.trim()
-    await settingsDB.set('adminPin', adminPin.value)
+    const hashed = await hashPin(newPin.trim())
+    adminPinHash.value = hashed
+    await settingsDB.set('adminPin', hashed)
     return true
   }
 
   async function updateOperatorPin(newPin: string): Promise<boolean> {
     if (newPin.trim().length !== 6) return false
-    operatorPin.value = newPin.trim()
-    await settingsDB.set('operatorPin', operatorPin.value)
+    const hashed = await hashPin(newPin.trim())
+    operatorPinHash.value = hashed
+    await settingsDB.set('operatorPin', hashed)
     return true
   }
 
@@ -83,11 +120,9 @@ export const useAuth = () => {
   return {
     currentRole,
     isAuthenticated: computed(() => currentRole.value !== null),
-    isAdmin: computed(() => currentRole.value === 'admin'),
-    isOperator: computed(() => currentRole.value === 'operator'),
+    isAdmin:         computed(() => currentRole.value === 'admin'),
+    isOperator:      computed(() => currentRole.value === 'operator'),
     isLoaded,
-    adminPin,
-    operatorPin,
     loadPins,
     verifyPin,
     updateAdminPin,

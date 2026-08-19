@@ -251,5 +251,5 @@ export function generateTestPrintPattern(): string {
   ctx.fillStyle = '#a1a1aa'
   ctx.fillText('RD PHOTOBOOTH HARDWARE SUBSYSTEM', 300, 1720)
 
-  return canvas.toDataURL('image/jpeg', 0.95)
+  return canvas.toDataURL('image/png')
 }

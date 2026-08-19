@@ -28,7 +28,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-zinc-100">Pengaturan Sistem</h1>
-          <p class="text-xs sm:text-sm text-zinc-400">Keamanan autentikasi PIN dan manajemen data</p>
+          <p class="text-xs sm:text-sm text-zinc-400">Keamanan autentikasi PIN, penyimpanan cloud, dan manajemen data</p>
         </div>
 
         <div class="flex items-center gap-3">
@@ -76,7 +76,7 @@
                   v-model="inputAdminPin"
                   :type="showAdminPin ? 'text' : 'password'"
                   maxlength="6"
-                  placeholder="888888"
+                  placeholder="Ketik PIN baru (6 digit)"
                   class="w-full px-4 py-3 rounded-xl bg-zinc-800 border border-zinc-700 text-sm font-mono tracking-widest text-zinc-100 placeholder-zinc-500 focus:border-amber-500 outline-none"
                 />
                 <button
@@ -100,7 +100,7 @@
                   v-model="inputOperatorPin"
                   :type="showOperatorPin ? 'text' : 'password'"
                   maxlength="6"
-                  placeholder="123456"
+                  placeholder="Ketik PIN baru (6 digit)"
                   class="w-full px-4 py-3 rounded-xl bg-zinc-800 border border-zinc-700 text-sm font-mono tracking-widest text-zinc-100 placeholder-zinc-500 focus:border-amber-500 outline-none"
                 />
                 <button
@@ -115,8 +115,84 @@
           </div>
         </div>
 
-        <!-- 2. Danger Zone & Pembersihan Data -->
-        <div class="p-6 bg-zinc-900 border border-rose-500/20 rounded-2xl flex flex-col justify-between gap-5 shadow-lg">
+        <!-- 2. Penyimpanan Cloud (Cloudinary) -->
+        <div class="p-6 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col justify-between gap-5 shadow-lg">
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-3 border-b border-zinc-800 pb-3">
+              <div class="p-2 bg-amber-500/10 rounded-xl text-amber-400">
+                <Icon name="lucide:cloud" class="w-5 h-5" />
+              </div>
+              <div>
+                <h2 class="text-base font-bold text-zinc-100">Penyimpanan Cloud (Cloudinary)</h2>
+                <p class="text-xs text-zinc-400">QR Code langsung terhubung online (dapat diakses via 4G/5G)</p>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <div>
+                <label for="cloud-name-input" class="block text-xs font-semibold text-zinc-300 mb-1">
+                  Cloud Name:
+                </label>
+                <input
+                  id="cloud-name-input"
+                  v-model="cloudinaryCloudName"
+                  type="text"
+                  placeholder="Contoh: dxy12345"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs text-zinc-100 placeholder-zinc-500 focus:border-amber-500 outline-none font-mono"
+                />
+              </div>
+
+              <div>
+                <label for="cloud-preset-input" class="block text-xs font-semibold text-zinc-300 mb-1">
+                  Upload Preset (Unsigned):
+                </label>
+                <input
+                  id="cloud-preset-input"
+                  v-model="cloudinaryPreset"
+                  type="text"
+                  placeholder="Contoh: photobooth_preset"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs text-zinc-100 placeholder-zinc-500 focus:border-amber-500 outline-none font-mono"
+                />
+              </div>
+
+              <div>
+                <label for="cloud-folder-input" class="block text-xs font-semibold text-zinc-300 mb-1">
+                  Folder Cloud:
+                </label>
+                <input
+                  id="cloud-folder-input"
+                  v-model="cloudinaryFolder"
+                  type="text"
+                  placeholder="rd-photobooth"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs text-zinc-100 placeholder-zinc-500 focus:border-amber-500 outline-none font-mono"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Test Connection Row -->
+          <div class="pt-2 border-t border-zinc-800/80 flex flex-col gap-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] text-zinc-400">Pastikan preset bertipe <b class="text-zinc-200">Unsigned</b> di Cloudinary.</span>
+              <button
+                type="button"
+                @click="testCloudinaryConnection"
+                :disabled="isTestingCloud || !cloudinaryCloudName || !cloudinaryPreset"
+                class="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-750 active:scale-95 text-amber-400 border border-amber-500/30 text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5 shrink-0"
+              >
+                <Icon v-if="isTestingCloud" name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
+                <Icon v-else name="lucide:zap" class="w-3.5 h-3.5" />
+                <span>Uji Koneksi</span>
+              </button>
+            </div>
+            <span v-if="cloudTestFeedback" class="text-[11px] font-semibold" :class="cloudTestFeedback.startsWith('✓') ? 'text-emerald-400' : 'text-rose-400'">
+              {{ cloudTestFeedback }}
+            </span>
+          </div>
+        </div>
+
+        <!-- 3. Danger Zone & Pembersihan Data -->
+        <div class="p-6 bg-zinc-900 border border-rose-500/20 rounded-2xl flex flex-col justify-between gap-5 shadow-lg lg:col-span-2">
           <div class="flex flex-col gap-4">
             <div class="flex items-center gap-3 border-b border-zinc-800 pb-3">
               <div class="p-2 bg-rose-500/10 rounded-xl text-rose-400">
@@ -128,22 +204,42 @@
               </div>
             </div>
 
-            <div class="p-4 rounded-xl bg-rose-500/5 border border-rose-500/20 flex flex-col gap-2">
-              <p class="text-xs font-bold text-zinc-200">Hapus Sesi Hari Ini</p>
-              <p class="text-[11px] text-zinc-400">
-                Menghapus foto dan sesi yang diambil pada hari ini saja. Sesi hari sebelumnya tetap tersimpan.
-              </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-zinc-850 border border-zinc-800 flex flex-col justify-between gap-3">
+                <div class="flex flex-col gap-1">
+                  <p class="text-xs font-bold text-zinc-200">Sesi Hari Ini</p>
+                  <p class="text-[11px] text-zinc-400">
+                    Menghapus sesi yang diambil pada hari ini saja. Sesi hari sebelumnya tetap tersimpan.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  @click="showClearModal = true"
+                  class="py-2 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-750 active:scale-95 text-rose-400 border border-rose-500/20 text-xs font-bold transition-all flex items-center justify-center gap-1.5 self-start"
+                >
+                  <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
+                  <span>Hapus Hari Ini</span>
+                </button>
+              </div>
+
+              <div class="p-4 rounded-xl bg-rose-500/5 border border-rose-500/20 flex flex-col justify-between gap-3">
+                <div class="flex flex-col gap-1">
+                  <p class="text-xs font-bold text-rose-300">Semua Sesi</p>
+                  <p class="text-[11px] text-zinc-400">
+                    Menghapus seluruh riwayat sesi foto dan file dari server dan database lokal secara permanen.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  @click="showClearAllModal = true"
+                  class="py-2 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 active:scale-95 text-zinc-950 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-md self-start"
+                >
+                  <Icon name="lucide:trash-2" class="w-3.5 h-3.5" />
+                  <span>Hapus Semua</span>
+                </button>
+              </div>
             </div>
           </div>
-
-          <button
-            type="button"
-            @click="showClearModal = true"
-            class="w-full py-3 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 active:scale-95 text-zinc-950 text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
-          >
-            <Icon name="lucide:trash-2" class="w-4 h-4" />
-            <span>Hapus Sesi Hari Ini</span>
-          </button>
         </div>
 
       </div>
@@ -183,6 +279,41 @@
         </div>
       </div>
 
+      <!-- Clear All Confirmation Modal -->
+      <div
+        v-if="showClearAllModal"
+        class="fixed inset-0 z-60 flex items-center justify-center bg-zinc-950/80 p-4 backdrop-blur-sm"
+        @click.self="showClearAllModal = false"
+      >
+        <div class="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 text-center">
+          <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto">
+            <Icon name="lucide:trash-2" class="w-6 h-6" />
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-zinc-100">Hapus Semua Sesi?</h3>
+            <p class="text-xs text-zinc-400 mt-1">
+              Seluruh data foto dan riwayat sesi dari awal akan dihapus permanen dari server dan penyimpanan lokal.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 pt-2">
+            <button
+              type="button"
+              @click="showClearAllModal = false"
+              class="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              @click="executeClearAll"
+              class="flex-1 py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-zinc-950 text-xs font-bold transition-all"
+            >
+              Ya, Hapus Semua
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -198,19 +329,61 @@ useSeoMeta({ title: 'Pengaturan — RD Photobooth' })
 const auth         = useAuth()
 const sessionStore = useSessionStore()
 
-const inputAdminPin    = ref('888888')
-const inputOperatorPin = ref('123456')
+// Input PIN
+const inputAdminPin    = ref('')
+const inputOperatorPin = ref('')
 const showAdminPin     = ref(false)
 const showOperatorPin  = ref(false)
+
+// Cloudinary
+const cloudinaryCloudName = ref('')
+const cloudinaryPreset    = ref('')
+const cloudinaryFolder    = ref('rd-photobooth')
+const isTestingCloud      = ref(false)
+const cloudTestFeedback   = ref('')
+
 const isSaving         = ref(false)
 const saveFeedback     = ref('')
 const showClearModal   = ref(false)
+const showClearAllModal = ref(false)
 
 onMounted(async () => {
   await auth.loadPins()
-  inputAdminPin.value    = auth.adminPin.value
-  inputOperatorPin.value = auth.operatorPin.value
+  try {
+    const serverSettings = await $fetch<Record<string, unknown>>('/api/settings').catch(() => null)
+    if (serverSettings) {
+      if (typeof serverSettings.cloudinaryCloudName === 'string') {
+        cloudinaryCloudName.value = serverSettings.cloudinaryCloudName
+      }
+      if (typeof serverSettings.cloudinaryPreset === 'string') {
+        cloudinaryPreset.value = serverSettings.cloudinaryPreset
+      }
+      if (typeof serverSettings.cloudinaryFolder === 'string') {
+        cloudinaryFolder.value = serverSettings.cloudinaryFolder
+      }
+    }
+  } catch { /* ignore */ }
 })
+
+async function testCloudinaryConnection() {
+  isTestingCloud.value    = true
+  cloudTestFeedback.value = ''
+  try {
+    const res = await $fetch<{ success: boolean; message: string }>('/api/upload/test-cloudinary', {
+      method: 'POST',
+      body: {
+        cloudName: cloudinaryCloudName.value,
+        uploadPreset: cloudinaryPreset.value,
+        folder: cloudinaryFolder.value,
+      },
+    })
+    cloudTestFeedback.value = `✓ ${res.message}`
+  } catch (err: any) {
+    cloudTestFeedback.value = `✕ ${err.data?.message || err.message || 'Koneksi Cloudinary gagal'}`
+  } finally {
+    isTestingCloud.value = false
+  }
+}
 
 async function saveSettings() {
   isSaving.value     = true
@@ -223,7 +396,17 @@ async function saveSettings() {
       await auth.updateOperatorPin(inputOperatorPin.value.trim())
     }
 
-    saveFeedback.value = '✓ PIN keamanan berhasil diperbarui'
+    // Save Cloudinary settings to server
+    await $fetch('/api/settings', {
+      method: 'POST',
+      body: {
+        cloudinaryCloudName: cloudinaryCloudName.value.trim(),
+        cloudinaryPreset: cloudinaryPreset.value.trim(),
+        cloudinaryFolder: cloudinaryFolder.value.trim(),
+      },
+    }).catch(() => {})
+
+    saveFeedback.value = '✓ Pengaturan dan PIN berhasil disimpan'
     setTimeout(() => { saveFeedback.value = '' }, 3000)
   } finally {
     isSaving.value = false
@@ -234,6 +417,13 @@ async function executeClearToday() {
   showClearModal.value = false
   await sessionStore.clearTodaySessions()
   saveFeedback.value = '✓ Sesi hari ini telah dibersihkan'
+  setTimeout(() => { saveFeedback.value = '' }, 3000)
+}
+
+async function executeClearAll() {
+  showClearAllModal.value = false
+  await sessionStore.clearAllSessions()
+  saveFeedback.value = '✓ Seluruh riwayat sesi telah dibersihkan'
   setTimeout(() => { saveFeedback.value = '' }, 3000)
 }
 </script>

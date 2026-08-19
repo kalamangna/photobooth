@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { sessionsDB } from '~/services/db'
+import { sessionsDB, sessionPhotosDB } from '~/services/db'
 
 definePageMeta({ layout: 'default' })
 
@@ -113,18 +113,31 @@ onMounted(async () => {
     // 1. Try server API
     const serverSession = await $fetch<Record<string, unknown>>(`/api/sessions/${sessionId}`).catch(() => null)
     if (serverSession) {
-      photoUrl.value  = (serverSession.outputUrl as string) || (serverSession.photos as { dataUrl: string }[])?.[0]?.dataUrl || null
       eventName.value = (serverSession.eventName as string) || ''
       startedAt.value = (serverSession.startedAt as string) || ''
-      return
+      photoUrl.value  = (serverSession.cloudUrl as string) || (serverSession.outputUrl as string) || null
     }
 
-    // 2. Fallback to local IndexedDB if same device
-    const local = await sessionsDB.get(sessionId) as Record<string, unknown> | undefined
-    if (local) {
-      photoUrl.value  = (local.outputUrl as string) || (local.photos as { dataUrl: string }[])?.[0]?.dataUrl || null
-      eventName.value = (local.eventName as string) || ''
-      startedAt.value = (local.startedAt as string) || ''
+    // 2. Fallback ke local IndexedDB session doc (device yang sama)
+    if (!photoUrl.value) {
+      const local = await sessionsDB.get(sessionId) as Record<string, unknown> | undefined
+      if (local) {
+        if (!eventName.value) eventName.value = (local.eventName as string) || ''
+        if (!startedAt.value) startedAt.value = (local.startedAt as string) || ''
+        photoUrl.value = (local.cloudUrl as string) || (local.outputUrl as string) || null
+      }
+    }
+
+    // 3. Fallback ke sessionPhotosDB Blob store (output composite, slot -1)
+    if (!photoUrl.value) {
+      const outputDataUrl = await sessionPhotosDB.getDataUrl(sessionId, -1)
+      if (outputDataUrl) photoUrl.value = outputDataUrl
+    }
+
+    // 4. Last resort: foto pertama dari Blob store (slot 0)
+    if (!photoUrl.value) {
+      const firstPhoto = await sessionPhotosDB.getDataUrl(sessionId, 0)
+      if (firstPhoto) photoUrl.value = firstPhoto
     }
   } finally {
     isLoading.value = false

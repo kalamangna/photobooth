@@ -31,15 +31,28 @@ export const useTemplateStore = defineStore('template', {
   actions: {
     // ─── Load ─────────────────────────────────────────────────
     async loadTemplates() {
+      // Jika templates kosong, inisialisasi awal dengan PRESET_TEMPLATES agar UI tidak blank
+      if (this.templates.length === 0) {
+        this.templates = [...PRESET_TEMPLATES]
+      }
       this.isLoading = true
       try {
-        const saved = await templatesDB.getAll() as PhotoTemplate[]
+        const saved = await templatesDB.getAll().catch((err) => {
+          console.warn('[TemplateStore] IndexedDB getAll failed, using presets:', err)
+          return []
+        }) as PhotoTemplate[]
+
         const map = new Map<string, PhotoTemplate>()
         // Always load latest code presets
         PRESET_TEMPLATES.forEach(t => map.set(t.id, t))
         // Load user-created custom templates
-        saved.filter(t => !t.id.startsWith('preset-')).forEach(t => map.set(t.id, t))
+        if (Array.isArray(saved)) {
+          saved.filter(t => t && t.id && !t.id.startsWith('preset-')).forEach(t => map.set(t.id, t))
+        }
         this.templates = [...map.values()]
+      } catch (err) {
+        console.error('[TemplateStore] loadTemplates error:', err)
+        this.templates = [...PRESET_TEMPLATES]
       } finally {
         this.isLoading = false
       }

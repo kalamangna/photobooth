@@ -8,7 +8,7 @@ import {
   canTransition,
   generatePrintJobId,
 } from '~/types/session'
-import { sessionsDB, printJobsDB, logsDB, settingsDB } from '~/services/db'
+import { sessionsDB, printJobsDB, logsDB, settingsDB, sessionPhotosDB } from '~/services/db'
 import { printImage } from '~/services/printer'
 
 interface SessionStoreState {
@@ -88,6 +88,18 @@ export const useSessionStore = defineStore('session', {
         if (!activeId) return false
         const session = await sessionsDB.get(activeId) as Session | null
         if (session && session.state !== 'DONE') {
+          // Restore foto dan outputUrl dari Blob store (karena session doc tidak menyimpan binary)
+          const { photos: photoMap, outputUrl } = await sessionPhotosDB.restoreSession(activeId)
+
+          // Patch dataUrl ke setiap photo slot
+          for (const slot of session.photos) {
+            const dataUrl = photoMap.get(slot.index)
+            if (dataUrl) slot.dataUrl = dataUrl
+          }
+
+          // Restore output composite
+          if (outputUrl) session.outputUrl = outputUrl
+
           this.current = session
           await this._log('info', 'session', 'session.recovered', `Recovered active session ${session.id} at state ${session.state}`)
           return true
@@ -121,6 +133,14 @@ export const useSessionStore = defineStore('session', {
       if (slot) {
         slot.dataUrl    = dataUrl
         slot.capturedAt = new Date().toISOString()
+
+        // Simpan foto raw sebagai Blob ke sessionPhotosDB (non-blocking)
+        sessionPhotosDB.upsert(
+          this.current.id,
+          this.current.currentShot,
+          dataUrl,
+          slot.capturedAt,
+        ).catch(err => console.warn('[DB] Photo blob save failed:', err))
       }
 
       await this._log('info', 'camera', 'camera.capture.completed', `Shot ${this.current.currentShot + 1}/${this.current.totalShots} captured`)
@@ -158,16 +178,87 @@ export const useSessionStore = defineStore('session', {
       if (!this.current) return
       this.current.outputUrl = outputUrl
       await this.transition('PREVIEW')
+
+      // Simpan output composite sebagai Blob (slot -1) ke sessionPhotosDB
+      sessionPhotosDB.upsert(this.current.id, -1, outputUrl, new Date().toISOString())
+        .catch(err => console.warn('[DB] Output blob save failed:', err))
+
       await this._persist()
+
+      // Upload ke Cloudinary di background jika terkonfigurasi
+      this.uploadToCloud(this.current.id, outputUrl, this.current.eventName || undefined)
     },
 
-    // ─── Set customer details ─────────────────────────────────
-    async setCustomerInfo(name: string, email: string) {
-      if (!this.current) return
-      this.current.customerName  = name.trim() || null
-      this.current.customerEmail = email.trim() || null
-      await this._persist()
-      await this._log('info', 'session', 'session.customer_saved', `Customer info saved: ${name} (${email})`)
+    async uploadToCloud(sessionId: string, dataUrl: string, eventName?: string) {
+      try {
+        const res = await $fetch<{ success: boolean; url?: string; notConfigured?: boolean }>('/api/upload/cloudinary', {
+          method: 'POST',
+          body: {
+            sessionId,
+            dataUrl,
+            eventName,
+          },
+        }).catch(() => null)
+
+        if (res && res.success && res.url) {
+          if (this.current && this.current.id === sessionId) {
+            this.current.cloudUrl = res.url
+            await this._persist()
+          }
+
+          const idx = this.history.findIndex(s => s.id === sessionId)
+          if (idx !== -1) {
+            this.history[idx] = {
+              ...this.history[idx],
+              cloudUrl: res.url,
+            }
+          }
+
+          const local = await sessionsDB.get(sessionId)
+          if (local) {
+            local.cloudUrl = res.url
+            await sessionsDB.save(local)
+          }
+
+          await this._log('info', 'cloud', 'cloud.uploaded', `Session ${sessionId} uploaded to Cloudinary: ${res.url}`)
+        }
+      } catch (err: any) {
+        console.warn('[Cloud] Upload background error:', err)
+      }
+    },
+
+    // ─── Set customer email ──────────────────────────────────
+    async setCustomerEmail(email: string, sessionId?: string) {
+      const targetId = sessionId || this.current?.id
+      const cleanEmail = email.trim() || null
+
+      if (this.current && (!sessionId || this.current.id === sessionId)) {
+        this.current.customerEmail = cleanEmail
+        await this._persist()
+      } else if (targetId) {
+        const session = await sessionsDB.get(targetId)
+        if (session) {
+          session.customerEmail = cleanEmail
+          await sessionsDB.save(session)
+        }
+      }
+
+      // Update in-memory history
+      if (targetId) {
+        const idx = this.history.findIndex(s => s.id === targetId)
+        if (idx !== -1) {
+          this.history[idx] = {
+            ...this.history[idx],
+            customerEmail: cleanEmail,
+          }
+        }
+      }
+
+      await this._log('info', 'session', 'session.customer_email_saved', `Customer email saved for #${targetId || 'active'}: ${email}`)
+    },
+
+    async setCustomerInfo(_name: string, email: string, sessionId?: string) {
+      return this.setCustomerEmail(email, sessionId)
     },
 
     // ─── Start print ──────────────────────────────────────────
@@ -206,6 +297,9 @@ export const useSessionStore = defineStore('session', {
       if (success) {
         job.status = 'COMPLETED'
         job.completedAt = new Date().toISOString()
+        this.current.printedAt = job.completedAt
+        this.current.printCount = (this.current.printCount || 0) + copies
+        await this._persist()
       } else {
         job.status = 'FAILED'
         job.errorMessage = 'Print execution cancelled or failed'
@@ -287,6 +381,15 @@ export const useSessionStore = defineStore('session', {
       if (success) {
         job.status = 'COMPLETED'
         job.completedAt = new Date().toISOString()
+        session.printJobId = job.id
+        session.printedAt  = job.completedAt
+        session.printCount = (session.printCount || 0) + copies
+        await sessionsDB.save(session)
+
+        const idx = this.history.findIndex(s => s.id === sessionId)
+        if (idx !== -1) {
+          this.history[idx] = { ...session }
+        }
         await this._log('info', 'printer', 'print.reprint_completed', `Reprint job ${job.id} sent to printer`)
       } else {
         job.status = 'FAILED'
@@ -324,7 +427,16 @@ export const useSessionStore = defineStore('session', {
         )
 
         const hasChanged = sorted.length !== this.history.length ||
-          sorted.some((s, i) => s.id !== this.history[i]?.id || s.outputUrl !== this.history[i]?.outputUrl)
+          sorted.some((s, i) =>
+            s.id !== this.history[i]?.id ||
+            s.outputUrl !== this.history[i]?.outputUrl ||
+            s.cloudUrl !== this.history[i]?.cloudUrl ||
+            s.customerEmail !== this.history[i]?.customerEmail ||
+            s.printedAt !== this.history[i]?.printedAt ||
+            s.printJobId !== this.history[i]?.printJobId ||
+            s.printCount !== this.history[i]?.printCount ||
+            s.completedAt !== this.history[i]?.completedAt
+          )
 
         if (hasChanged || this.history.length === 0) {
           this.history = sorted

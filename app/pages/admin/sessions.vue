@@ -140,12 +140,22 @@
             <!-- Print Status -->
             <td class="px-5 py-4 text-center whitespace-nowrap">
               <span
-                class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border"
-                :class="session.outputUrl
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                  : 'bg-zinc-800 text-zinc-400 border-zinc-700'"
+                v-if="session.printedAt || session.printJobId"
+                class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
               >
-                {{ session.outputUrl ? 'Tercetak' : 'Tanpa Print' }}
+                Tercetak {{ session.printCount && session.printCount > 1 ? `(${session.printCount}x)` : '' }}
+              </span>
+              <span
+                v-else-if="session.outputUrl"
+                class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border bg-amber-500/10 text-amber-400 border-amber-500/20"
+              >
+                Belum Dicetak
+              </span>
+              <span
+                v-else
+                class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase border bg-zinc-800 text-zinc-400 border-zinc-700"
+              >
+                Tanpa Foto
               </span>
             </td>
 
@@ -221,7 +231,27 @@
               <span class="font-mono text-[10px] text-zinc-400">{{ formatTime(session.startedAt) }}</span>
             </div>
             <p class="text-xs text-zinc-400 truncate">{{ session.customerEmail || 'Tanpa email' }}</p>
-            <p class="text-[11px] text-zinc-500 truncate">{{ getSessionEvent(session) }}</p>
+            <div class="flex items-center justify-between gap-2 mt-0.5">
+              <p class="text-[11px] text-zinc-500 truncate">{{ getSessionEvent(session) }}</p>
+              <span
+                v-if="session.printedAt || session.printJobId"
+                class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shrink-0"
+              >
+                Tercetak {{ session.printCount && session.printCount > 1 ? `(${session.printCount}x)` : '' }}
+              </span>
+              <span
+                v-else-if="session.outputUrl"
+                class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase border bg-amber-500/10 text-amber-400 border-amber-500/20 shrink-0"
+              >
+                Belum Cetak
+              </span>
+              <span
+                v-else
+                class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase border bg-zinc-800 text-zinc-400 border-zinc-700 shrink-0"
+              >
+                Tanpa Foto
+              </span>
+            </div>
           </div>
         </div>
 
@@ -309,12 +339,38 @@
                 <span class="font-mono text-zinc-300">{{ formatDateTime(activeSession.startedAt) }}</span>
               </div>
               <div class="flex justify-between border-b border-zinc-800 pb-2">
-                <span class="text-zinc-400">Acara:</span>
-                <span class="font-semibold text-amber-400">{{ getSessionEvent(activeSession) }}</span>
-              </div>
-              <div class="flex justify-between">
                 <span class="text-zinc-400">Email:</span>
                 <span class="text-zinc-300 font-mono truncate max-w-[170px]">{{ activeSession.customerEmail || 'Tidak diisi' }}</span>
+              </div>
+              <div class="flex justify-between border-b border-zinc-800 pb-2">
+                <span class="text-zinc-400">Status Cetak:</span>
+                <span
+                  v-if="activeSession.printedAt || activeSession.printJobId"
+                  class="font-semibold text-emerald-400"
+                >
+                  Tercetak {{ activeSession.printCount && activeSession.printCount > 1 ? `(${activeSession.printCount}x)` : '' }}
+                </span>
+                <span
+                  v-else-if="activeSession.outputUrl"
+                  class="font-semibold text-amber-400"
+                >
+                  Belum Dicetak
+                </span>
+                <span v-else class="text-zinc-500">
+                  Tanpa Foto
+                </span>
+              </div>
+              <div v-if="activeSession.cloudUrl" class="flex justify-between items-center pt-0.5">
+                <span class="text-zinc-400">Cloud Link:</span>
+                <a
+                  :href="activeSession.cloudUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 hover:underline"
+                >
+                  <Icon name="lucide:external-link" class="w-3.5 h-3.5" />
+                  <span>Buka Foto Cloud</span>
+                </a>
               </div>
             </div>
 
@@ -407,6 +463,7 @@
 import { useSessionStore } from '~/stores/session'
 import type { Session }    from '~/types/session'
 import { useAuth }         from '~/composables/useAuth'
+import { sessionPhotosDB } from '~/services/db'
 
 definePageMeta({ layout: 'admin' })
 useSeoMeta({ title: 'Sesi Foto — RD Photobooth' })
@@ -491,10 +548,25 @@ const filteredSessions = computed(() => {
   return list
 })
 
-function openDetail(session: Session) {
+async function openDetail(session: Session) {
   activeSession.value      = session
   selectedPreviewUrl.value = session.outputUrl || session.photos?.[0]?.dataUrl || null
   reprintFeedback.value    = ''
+
+  if (!selectedPreviewUrl.value) {
+    try {
+      const outputBlob = await sessionPhotosDB.getDataUrl(session.id, -1)
+      if (outputBlob) {
+        session.outputUrl = outputBlob
+        selectedPreviewUrl.value = outputBlob
+      } else {
+        const firstPhoto = await sessionPhotosDB.getDataUrl(session.id, 0)
+        if (firstPhoto) {
+          selectedPreviewUrl.value = firstPhoto
+        }
+      }
+    } catch {}
+  }
 }
 
 function closeDetail() {

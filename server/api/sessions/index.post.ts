@@ -1,5 +1,7 @@
 interface SessionPayload {
   id: string
+  outputUrl?: string | null
+  photos?: unknown[]
   [key: string]: unknown
 }
 
