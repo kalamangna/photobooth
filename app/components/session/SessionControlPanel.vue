@@ -4,7 +4,9 @@
     :class="
       isLandscape
         ? 'flex-col w-[clamp(260px,28vw,340px)] h-full border-l border-zinc-800 p-5 gap-4 items-stretch'
-        : 'flex-row w-full border-t border-zinc-800 px-5 py-3 gap-4 items-center max-h-[30dvh] min-h-[110px]'
+        : sessionState === 'DONE'
+          ? 'flex-col w-full border-t border-zinc-800 p-4 sm:p-5 gap-3 items-stretch max-h-[58dvh]'
+          : 'flex-row w-full border-t border-zinc-800 px-5 py-3 gap-4 items-center max-h-[30dvh] min-h-[110px]'
     "
   >
     <!-- Shot thumbnails -->

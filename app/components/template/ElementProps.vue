@@ -163,6 +163,49 @@
         </section>
       </template>
 
+      <!-- Image/Frame-specific -->
+      <template v-if="el.type === 'image'">
+        <section class="p-3.5 border-b border-zinc-800 flex flex-col gap-2.5">
+          <h3 class="text-[10px] font-bold font-mono tracking-wider uppercase text-zinc-400">Frame & Gambar</h3>
+
+          <!-- Image Preview Thumbnail -->
+          <div v-if="el.src" class="w-full aspect-video bg-zinc-950 rounded-xl border border-zinc-800 p-2 flex items-center justify-center overflow-hidden shadow-inner">
+            <img :src="el.src" class="max-h-full object-contain" alt="Frame preview" />
+          </div>
+
+          <!-- Replace File Button -->
+          <label class="w-full py-2 px-3 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
+            <Icon name="lucide:upload" class="w-3.5 h-3.5" />
+            <span>Ganti File Frame PNG</span>
+            <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" @change="onImageFileChange" />
+          </label>
+
+          <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
+            <span>Kesesuaian (Fit)</span>
+            <select :value="el.fit" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs outline-none focus:border-amber-500" @change="update('fit', ($event.target as HTMLSelectElement).value)">
+              <option value="cover">Cover (Menutupi Penuh)</option>
+              <option value="contain">Contain (Proporsional)</option>
+              <option value="fill">Fill (Regang Penuh)</option>
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
+            <span>Mode Blend</span>
+            <select :value="el.blendMode" class="px-2.5 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs outline-none focus:border-amber-500" @change="update('blendMode', ($event.target as HTMLSelectElement).value)">
+              <option value="normal">Normal (Standar)</option>
+              <option value="multiply">Multiply</option>
+              <option value="screen">Screen</option>
+              <option value="overlay">Overlay</option>
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-1 text-[11px] font-medium text-zinc-400">
+            <span>Radius Sudut</span>
+            <input type="range" min="0" max="100" :value="el.borderRadius" class="accent-amber-500" @input="update('borderRadius', +($event.target as HTMLInputElement).value)" />
+          </label>
+        </section>
+      </template>
+
       <!-- Visibility & lock -->
       <section class="p-3.5 border-b border-zinc-800">
         <div class="flex items-center gap-4 text-xs text-zinc-300">
@@ -223,5 +266,19 @@ function colorToHex(color: string): string {
   const ctx    = canvas.getContext('2d')!
   ctx.fillStyle = color
   return ctx.fillStyle
+}
+
+function onImageFileChange(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (event) => {
+    const dataUrl = event.target?.result as string
+    if (dataUrl) {
+      update('src', dataUrl)
+    }
+  }
+  reader.readAsDataURL(file)
 }
 </script>

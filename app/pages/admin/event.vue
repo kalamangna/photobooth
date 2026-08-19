@@ -4,8 +4,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-zinc-100">Pengaturan Acara</h1>
-        <p class="text-xs sm:text-sm text-zinc-400">Konfigurasi nama acara, alur foto, dan otomasi booth</p>
+        <h1 class="text-2xl font-bold tracking-tight text-zinc-100">Acara</h1>
+        <p class="text-xs sm:text-sm text-zinc-400">Nama acara, durasi timer, dan template default</p>
       </div>
 
       <div class="flex items-center gap-3">
@@ -21,7 +21,7 @@
         >
           <Icon v-if="isSaving" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
           <Icon v-else name="lucide:save" class="w-4 h-4" />
-          <span>{{ isSaving ? 'Menyimpan…' : 'Simpan Konfigurasi' }}</span>
+          <span>{{ isSaving ? 'Menyimpan…' : 'Simpan' }}</span>
         </button>
       </div>
     </div>
@@ -36,13 +36,13 @@
             <Icon name="lucide:party-popper" class="w-5 h-5" />
           </div>
           <div>
-            <h2 class="text-base font-bold text-zinc-100">Identitas Acara</h2>
-            <p class="text-xs text-zinc-400">Ditampilkan pada layar booth dan hasil cetak</p>
+            <h2 class="text-base font-bold text-zinc-100">Nama Acara</h2>
+            <p class="text-xs text-zinc-400">Ditampilkan pada layar booth dan cetak</p>
           </div>
         </div>
 
         <div class="flex flex-col gap-2">
-          <label for="event-name-input" class="text-xs font-semibold text-zinc-300">Nama Acara:</label>
+          <label for="event-name-input" class="text-xs font-semibold text-zinc-300">Nama Acara</label>
           <input
             id="event-name-input"
             v-model="eventName"
@@ -71,13 +71,13 @@
             <Icon name="lucide:timer" class="w-5 h-5" />
           </div>
           <div>
-            <h2 class="text-base font-bold text-zinc-100">Waktu Countdown</h2>
-            <p class="text-xs text-zinc-400">Durasi jeda sebelum kamera menjepret</p>
+            <h2 class="text-base font-bold text-zinc-100">Timer Hitung Mundur</h2>
+            <p class="text-xs text-zinc-400">Jeda sebelum kamera mengambil foto</p>
           </div>
         </div>
 
         <div class="flex flex-col gap-2">
-          <label class="text-xs font-semibold text-zinc-300">Pilih Durasi Timer:</label>
+          <label class="text-xs font-semibold text-zinc-300">Durasi Timer</label>
           <div class="grid grid-cols-2 gap-3">
             <button
               v-for="cd in [3, 5]"
@@ -104,12 +104,12 @@
           </div>
           <div>
             <h2 class="text-base font-bold text-zinc-100">Template Default</h2>
-            <p class="text-xs text-zinc-400">Bingkai foto pilihan utama saat sesi dimulai</p>
+            <p class="text-xs text-zinc-400">Template awal saat booth dibuka</p>
           </div>
         </div>
 
         <div class="flex flex-col gap-2">
-          <label for="default-template-select" class="text-xs font-semibold text-zinc-300">Pilih Template:</label>
+          <label for="default-template-select" class="text-xs font-semibold text-zinc-300">Pilih Template</label>
           <select
             id="default-template-select"
             v-model="selectedTemplateId"
@@ -129,8 +129,8 @@
             <Icon name="lucide:sliders" class="w-5 h-5" />
           </div>
           <div>
-            <h2 class="text-base font-bold text-zinc-100">Otomasi & Audio</h2>
-            <p class="text-xs text-zinc-400">Pengaturan cetak langsung dan audio feedback</p>
+            <h2 class="text-base font-bold text-zinc-100">Otomasi & Suara</h2>
+            <p class="text-xs text-zinc-400">Cetak otomatis dan suara shutter</p>
           </div>
         </div>
 
@@ -139,7 +139,7 @@
           <label class="flex items-center justify-between cursor-pointer p-2 rounded-xl hover:bg-zinc-800/50 transition-colors">
             <div class="flex flex-col">
               <span class="text-xs font-bold text-zinc-100">Cetak Otomatis</span>
-              <span class="text-[11px] text-zinc-400">Kirim perintah print langsung saat foto selesai</span>
+              <span class="text-[11px] text-zinc-400">Cetak langsung setelah foto selesai</span>
             </div>
             <input type="checkbox" v-model="autoPrint" class="sr-only peer" />
             <div class="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 relative border border-zinc-700"></div>
@@ -148,7 +148,7 @@
           <!-- Audio Feedback Switch -->
           <label class="flex items-center justify-between cursor-pointer p-2 rounded-xl hover:bg-zinc-800/50 transition-colors">
             <div class="flex flex-col">
-              <span class="text-xs font-bold text-zinc-100">Efek Suara (Audio)</span>
+              <span class="text-xs font-bold text-zinc-100">Suara Shutter & Timer</span>
               <span class="text-[11px] text-zinc-400">Bunyi hitung mundur dan shutter kamera</span>
             </div>
             <input type="checkbox" v-model="audioEnabled" class="sr-only peer" />

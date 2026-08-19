@@ -30,7 +30,7 @@
           class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-zinc-950 font-bold text-xs shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
         >
           <Icon name="lucide:refresh-cw" class="w-4 h-4" :class="isResetting ? 'animate-spin' : ''" />
-          <span>{{ isResetting ? 'Mereset...' : 'Reset Layar Booth' }}</span>
+          <span>{{ isResetting ? 'Mereset…' : 'Reset Booth' }}</span>
         </button>
       </div>
     </div>
@@ -48,7 +48,7 @@
           <p class="text-base font-bold text-zinc-100 group-hover:text-amber-400 transition-colors">
             {{ cameraConnected ? 'Connected' : 'Offline' }}
           </p>
-          <p class="text-[11px] text-zinc-500 truncate">{{ cameraLabel || 'Periksa perangkat' }}</p>
+          <p class="text-[11px] text-zinc-500 truncate">{{ cameraLabel || 'Periksa kamera' }}</p>
         </div>
       </NuxtLink>
 
@@ -62,7 +62,7 @@
           <p class="text-base font-bold text-zinc-100 group-hover:text-amber-400 transition-colors">
             {{ printerReady ? 'Ready' : 'Queue Busy' }}
           </p>
-          <p class="text-[11px] text-zinc-500">{{ pendingJobsCount > 0 ? `${pendingJobsCount} job antrean` : 'Print engine siap' }}</p>
+          <p class="text-[11px] text-zinc-500">{{ pendingJobsCount > 0 ? `${pendingJobsCount} job antrean` : 'Siap mencetak' }}</p>
         </div>
       </NuxtLink>
 
@@ -83,7 +83,7 @@
       <!-- Total Print Selesai -->
       <div class="p-4 sm:p-5 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col justify-between gap-3 shadow-md">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-medium text-zinc-400">Prints Hari Ini</span>
+          <span class="text-xs font-medium text-zinc-400">Cetak Hari Ini</span>
           <Icon name="lucide:printer" class="w-4 h-4 text-emerald-400" />
         </div>
         <div>
@@ -107,7 +107,7 @@
           to="/admin/sessions"
           class="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1"
         >
-          <span>Lihat Semua Sesi</span>
+          <span>Semua Sesi</span>
           <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" />
         </NuxtLink>
       </div>
@@ -118,7 +118,7 @@
         class="py-12 px-4 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col items-center justify-center text-center gap-2"
       >
         <Icon name="lucide:image" class="w-8 h-8 text-zinc-600" />
-        <p class="text-sm font-semibold text-zinc-300">Belum ada sesi foto yang tercatat</p>
+        <p class="text-sm font-semibold text-zinc-300">Belum ada sesi foto</p>
       </div>
 
       <!-- Recent Cards Grid -->

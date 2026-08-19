@@ -6,6 +6,13 @@
       <div class="flex items-center gap-1">
         <button
           class="p-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-amber-400 transition-colors"
+          title="Upload Frame / Gambar"
+          @click="$emit('add', 'image')"
+        >
+          <Icon name="lucide:file-image" class="w-3.5 h-3.5" />
+        </button>
+        <button
+          class="p-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-amber-400 transition-colors"
           title="Tambah Foto"
           @click="$emit('add', 'photo')"
         >

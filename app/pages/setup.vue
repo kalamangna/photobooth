@@ -126,8 +126,8 @@
           </span>
         </div>
 
-        <!-- Large Canvas Preview Showcase -->
-        <div class="w-full flex-1 flex items-center justify-center bg-zinc-950 rounded-2xl p-3 sm:p-4 overflow-hidden border border-zinc-800/80 min-h-0 shadow-inner">
+        <!-- Large Canvas Preview Showcase (Visible on md and up) -->
+        <div class="w-full flex-1 hidden md:flex items-center justify-center bg-zinc-950 rounded-2xl p-3 sm:p-4 overflow-hidden border border-zinc-800/80 min-h-0 shadow-inner">
           <TemplateCanvasPreview
             :template="selectedTemplate"
             :photos="dummyPhotos"

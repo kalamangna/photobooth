@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Komponen Reusable `FlowbiteModal.vue`** (`app/components/ui/FlowbiteModal.vue`):
+  - Standardisasi dialog modal panel admin menggunakan hierarki kelas Flowbite resmi, `<Teleport to="body">`, transisi halus, backdrop click dismiss, dan varian ukuran responsif (`sm`, `md`, `lg`, `xl`, `2xl`, `3xl`, `4xl`).
+  - Migrasi seluruh modal di `templates.vue`, `sessions.vue`, `logs.vue`, dan `settings.vue` ke komponen `FlowbiteModal`.
+
+### Changed
+- **Penyederhanaan Alur Template & Standardisasi Preset**:
+  - Menyelaraskan preset bawaan ke format standar **Strip 2×6 (3 Foto Vertikal · 600×1800 px · 300 DPI)** (*Classic White Strip* & *Midnight Noir Strip*) di `app/services/presets.ts`.
+  - Mengunci template preset bawaan agar tidak dapat dihapus/ditimpa secara langsung (tersedia tombol duplikasi).
+  - Modal upload frame PNG kini langsung terhubung dengan slot koordinat 3 foto strip serta mendukung *drag & drop*.
+- **Reviu Menyeluruh Salinan Teks (*Copywriting*) & Form Label Admin**:
+  - Merapikan seluruh teks dan microcopy di Dashboard, Acara, Perangkat, Sesi Foto, Template, Pengaturan, dan Log agar ringkas, lugas (*to the point*), dan kontekstual.
+  - Menyeragamkan seluruh label input form tanpa tanda titik dua dan deskripsi redundan.
+  - Mempersingkat teks pada dialog konfirmasi modal dan tombol aksi.
+- **Penyempurnaan Responsivitas Antarmuka**:
+  - Penyesuaian layout pratinjau kanvas pada halaman pemilihan template (`setup.vue`) agar tersembunyi di layar kecil/mobile dan tampil fleksibel di desktop.
+  - Penambahan batasan tinggi `max-h-[58dvh]` dan scrollbar pada panel kontrol sesi pemotretan saat orientasi portrait.
+
+### Removed
+- Menghapus preset 4-foto (`TEMPLATE_STRIP_4PHOTO` dan `TEMPLATE_GRID_4PHOTO`) dari preset bawaan sistem untuk memfokuskan alur pada format strip 2×6.
+
 ### Security
 - Hashing PIN Admin & Operator menggunakan **Web Crypto API (SHA-256)** — PIN tidak lagi tersimpan sebagai plaintext di IndexedDB maupun server (`app/utils/crypto.ts`, `app/composables/useAuth.ts`).
 - Migrasi backward-compatible: PIN plaintext lama otomatis di-hash saat `loadPins()` pertama kali dipanggil setelah update.

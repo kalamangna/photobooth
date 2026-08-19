@@ -122,7 +122,7 @@
             <!-- Admin Only Section -->
             <template v-if="auth.isAdmin.value">
               <li class="pt-3 pb-1 px-3">
-                <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Pengelolaan Lanjutan</span>
+                <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Admin</span>
               </li>
 
               <!-- Template -->
@@ -174,7 +174,7 @@
               class="flex items-center p-2.5 rounded-xl text-xs font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
             >
               <Icon name="lucide:external-link" class="w-4 h-4 text-zinc-500" />
-              <span class="ml-3">Buka Layar Booth</span>
+              <span class="ml-3">Layar Booth</span>
             </NuxtLink>
           </div>
         </div>
@@ -208,8 +208,8 @@
             <Icon name="lucide:lock" class="w-6 h-6" />
           </div>
           <div>
-            <h2 class="text-xl font-bold text-zinc-100">Autentikasi Akses</h2>
-            <p class="text-xs text-zinc-400 mt-0.5">Masukkan PIN 6 digit (Admin / Operator)</p>
+            <h2 class="text-xl font-bold text-zinc-100">Masuk Admin</h2>
+            <p class="text-xs text-zinc-400 mt-0.5">Masukkan PIN 6 digit</p>
           </div>
         </div>
 

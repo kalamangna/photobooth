@@ -6,7 +6,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-zinc-100">Sesi Foto</h1>
-          <p class="text-xs sm:text-sm text-zinc-400">Riwayat sesi pengambilan dan cetak foto</p>
+          <p class="text-xs sm:text-sm text-zinc-400">Riwayat sesi foto dan cetak</p>
         </div>
 
         <button
@@ -78,7 +78,7 @@
       </div>
       <div>
         <p class="text-base font-bold text-zinc-200">Tidak Ada Sesi Foto</p>
-        <p class="text-xs text-zinc-400 mt-0.5">Tidak ditemukan data sesi foto yang sesuai dengan filter pencarian atau periode waktu.</p>
+        <p class="text-xs text-zinc-400 mt-0.5">Belum ada sesi foto yang tercatat.</p>
       </div>
     </div>
 
@@ -287,174 +287,150 @@
       </div>
     </div>
 
-    <!-- ── Detail Modal ──────────────────────────────────────── -->
-    <div
-      v-if="activeSession"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 p-4 backdrop-blur-sm"
-      @click.self="closeDetail"
+    <!-- ── Flowbite Modal: Detail Sesi Foto ────────────────── -->
+    <FlowbiteModal
+      :model-value="!!activeSession"
+      title="Detail Sesi"
+      :subtitle="activeSession ? `#${activeSession.id}` : ''"
+      icon="lucide:camera"
+      size="2xl"
+      @update:model-value="(v) => { if (!v) closeDetail() }"
     >
-      <div class="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
-          <div class="flex items-center gap-2.5">
-            <div class="p-2 bg-amber-500/10 rounded-xl text-amber-400">
-              <Icon name="lucide:camera" class="w-5 h-5" />
-            </div>
-            <div>
-              <h3 class="text-base font-bold text-zinc-100">Detail Sesi Foto</h3>
-              <p class="text-xs text-zinc-500 font-mono">#{{ activeSession.id }}</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            @click="closeDetail"
-            class="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-xl transition-colors"
-          >
-            <Icon name="lucide:x" class="w-5 h-5" />
-          </button>
+      <div v-if="activeSession" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <!-- Preview Box -->
+        <div class="aspect-[3/4] bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800 flex items-center justify-center p-3">
+          <img
+            v-if="selectedPreviewUrl"
+            :src="selectedPreviewUrl"
+            class="w-full h-full object-contain rounded-xl shadow-md"
+            alt="Detail Preview"
+          />
+          <span v-else class="text-xs text-zinc-500">Tidak ada preview</span>
         </div>
 
-        <!-- Modal Content -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <!-- Preview Box -->
-          <div class="aspect-[3/4] bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800 flex items-center justify-center p-3">
-            <img
-              v-if="selectedPreviewUrl"
-              :src="selectedPreviewUrl"
-              class="w-full h-full object-contain rounded-xl shadow-md"
-              alt="Detail Preview"
-            />
-            <span v-else class="text-xs text-zinc-500">Tidak ada preview</span>
+        <!-- Metadata & Actions -->
+        <div class="flex flex-col justify-between gap-4">
+          <div class="p-4 bg-zinc-850/80 border border-zinc-800 rounded-2xl flex flex-col gap-3 text-xs">
+            <div class="flex justify-between border-b border-zinc-800 pb-2">
+              <span class="text-zinc-400">ID Sesi:</span>
+              <span class="font-mono font-bold text-zinc-100">#{{ activeSession.id }}</span>
+            </div>
+            <div class="flex justify-between border-b border-zinc-800 pb-2">
+              <span class="text-zinc-400">Waktu:</span>
+              <span class="font-mono text-zinc-300">{{ formatDateTime(activeSession.startedAt) }}</span>
+            </div>
+            <div class="flex justify-between border-b border-zinc-800 pb-2">
+              <span class="text-zinc-400">Email:</span>
+              <span class="text-zinc-300 font-mono truncate max-w-[170px]">{{ activeSession.customerEmail || 'Tidak diisi' }}</span>
+            </div>
+            <div class="flex justify-between border-b border-zinc-800 pb-2">
+              <span class="text-zinc-400">Status Cetak:</span>
+              <span
+                v-if="activeSession.printedAt || activeSession.printJobId"
+                class="font-semibold text-emerald-400"
+              >
+                Tercetak {{ activeSession.printCount && activeSession.printCount > 1 ? `(${activeSession.printCount}x)` : '' }}
+              </span>
+              <span
+                v-else-if="activeSession.outputUrl"
+                class="font-semibold text-amber-400"
+              >
+                Belum Dicetak
+              </span>
+              <span v-else class="text-zinc-500">
+                Tanpa Foto
+              </span>
+            </div>
+            <div v-if="activeSession.cloudUrl" class="flex justify-between items-center pt-0.5">
+              <span class="text-zinc-400">Cloud:</span>
+              <a
+                :href="activeSession.cloudUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 hover:underline"
+              >
+                <Icon name="lucide:external-link" class="w-3.5 h-3.5" />
+                <span>Buka di Cloud</span>
+              </a>
+            </div>
           </div>
 
-          <!-- Metadata & Actions -->
-          <div class="flex flex-col justify-between gap-4">
-            <div class="p-4 bg-zinc-850/80 border border-zinc-800 rounded-2xl flex flex-col gap-3 text-xs">
-              <div class="flex justify-between border-b border-zinc-800 pb-2">
-                <span class="text-zinc-400">ID Sesi:</span>
-                <span class="font-mono font-bold text-zinc-100">#{{ activeSession.id }}</span>
-              </div>
-              <div class="flex justify-between border-b border-zinc-800 pb-2">
-                <span class="text-zinc-400">Waktu:</span>
-                <span class="font-mono text-zinc-300">{{ formatDateTime(activeSession.startedAt) }}</span>
-              </div>
-              <div class="flex justify-between border-b border-zinc-800 pb-2">
-                <span class="text-zinc-400">Email:</span>
-                <span class="text-zinc-300 font-mono truncate max-w-[170px]">{{ activeSession.customerEmail || 'Tidak diisi' }}</span>
-              </div>
-              <div class="flex justify-between border-b border-zinc-800 pb-2">
-                <span class="text-zinc-400">Status Cetak:</span>
-                <span
-                  v-if="activeSession.printedAt || activeSession.printJobId"
-                  class="font-semibold text-emerald-400"
-                >
-                  Tercetak {{ activeSession.printCount && activeSession.printCount > 1 ? `(${activeSession.printCount}x)` : '' }}
-                </span>
-                <span
-                  v-else-if="activeSession.outputUrl"
-                  class="font-semibold text-amber-400"
-                >
-                  Belum Dicetak
-                </span>
-                <span v-else class="text-zinc-500">
-                  Tanpa Foto
-                </span>
-              </div>
-              <div v-if="activeSession.cloudUrl" class="flex justify-between items-center pt-0.5">
-                <span class="text-zinc-400">Cloud Link:</span>
-                <a
-                  :href="activeSession.cloudUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 hover:underline"
-                >
-                  <Icon name="lucide:external-link" class="w-3.5 h-3.5" />
-                  <span>Buka Foto Cloud</span>
-                </a>
-              </div>
+          <!-- Actions -->
+          <div class="flex flex-col gap-2.5 pt-1">
+            <!-- Primary: Cetak Foto -->
+            <button
+              type="button"
+              @click="triggerReprint"
+              :disabled="isReprinting || !activeSession.outputUrl"
+              class="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-zinc-950 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md disabled:opacity-40 disabled:pointer-events-none"
+            >
+              <Icon v-if="isReprinting" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
+              <Icon v-else name="lucide:printer" class="w-4 h-4" />
+              <span>{{ isReprinting ? 'Mengirim…' : 'Cetak' }}</span>
+            </button>
+
+            <div v-if="reprintFeedback" class="py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400 text-center flex items-center justify-center gap-1.5">
+              <Icon name="lucide:check-circle-2" class="w-3.5 h-3.5" />
+              <span>{{ reprintFeedback }}</span>
             </div>
 
-            <!-- Actions -->
-            <div class="flex flex-col gap-2.5 pt-1">
-              <!-- Primary: Cetak Foto -->
+            <!-- Secondary Row -->
+            <div class="flex items-center gap-2">
               <button
                 type="button"
-                @click="triggerReprint"
-                :disabled="isReprinting || !activeSession.outputUrl"
-                class="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-zinc-950 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md disabled:opacity-40 disabled:pointer-events-none"
+                @click="downloadOutput(activeSession)"
+                :disabled="!activeSession.outputUrl"
+                class="flex-1 py-2.5 px-3 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-750 active:scale-[0.98] text-zinc-200 text-xs font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-40"
               >
-                <Icon v-if="isReprinting" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
-                <Icon v-else name="lucide:printer" class="w-4 h-4" />
-                <span>{{ isReprinting ? 'Mengirim ke printer…' : 'Cetak Foto' }}</span>
+                <Icon name="lucide:download" class="w-4 h-4 text-zinc-400" />
+                <span>Unduh</span>
               </button>
 
-              <div v-if="reprintFeedback" class="py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400 text-center flex items-center justify-center gap-1.5">
-                <Icon name="lucide:check-circle-2" class="w-3.5 h-3.5" />
-                <span>{{ reprintFeedback }}</span>
-              </div>
-
-              <!-- Secondary Row -->
-              <div class="flex items-center gap-2">
-                <button
-                  type="button"
-                  @click="downloadOutput(activeSession)"
-                  :disabled="!activeSession.outputUrl"
-                  class="flex-1 py-2.5 px-3 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-750 active:scale-[0.98] text-zinc-200 text-xs font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-40"
-                >
-                  <Icon name="lucide:download" class="w-4 h-4 text-zinc-400" />
-                  <span>Unduh File</span>
-                </button>
-
-                <button
-                  v-if="auth.isAdmin.value"
-                  type="button"
-                  @click="confirmDelete(activeSession)"
-                  class="flex-1 py-2.5 px-3 rounded-xl border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 active:scale-[0.98] text-rose-400 text-xs font-semibold transition-all flex items-center justify-center gap-2"
-                >
-                  <Icon name="lucide:trash-2" class="w-4 h-4" />
-                  <span>Hapus Sesi</span>
-                </button>
-              </div>
+              <button
+                v-if="auth.isAdmin.value"
+                type="button"
+                @click="confirmDelete(activeSession)"
+                class="flex-1 py-2.5 px-3 rounded-xl border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 active:scale-[0.98] text-rose-400 text-xs font-semibold transition-all flex items-center justify-center gap-2"
+              >
+                <Icon name="lucide:trash-2" class="w-4 h-4" />
+                <span>Hapus</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </FlowbiteModal>
 
-    <!-- ── Delete Confirmation Modal ─────────────────────────── -->
-    <div
-      v-if="sessionToDelete"
-      class="fixed inset-0 z-60 flex items-center justify-center bg-zinc-950/80 p-4 backdrop-blur-sm"
-      @click.self="sessionToDelete = null"
+    <!-- ── Flowbite Modal: Delete Confirmation ────────────────── -->
+    <FlowbiteModal
+      :model-value="!!sessionToDelete"
+      title="Hapus Sesi?"
+      icon="lucide:alert-triangle"
+      icon-bg-class="bg-rose-500/10 text-rose-400 border border-rose-500/30"
+      size="sm"
+      @update:model-value="(v) => { if (!v) sessionToDelete = null }"
     >
-      <div class="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl flex flex-col gap-4">
-        <div class="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
-          <Icon name="lucide:alert-triangle" class="w-5 h-5" />
-        </div>
-        <div>
-          <h3 class="text-base font-bold text-zinc-100">Hapus Sesi?</h3>
-          <p class="text-xs text-zinc-400 mt-1">
-            Sesi <span class="font-mono font-bold text-zinc-200">#{{ sessionToDelete.id }}</span> akan dihapus permanen dari memori lokal.
-          </p>
-        </div>
-        <div class="flex items-center gap-2 pt-2">
-          <button
-            type="button"
-            @click="sessionToDelete = null"
-            class="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all"
-          >
-            Batal
-          </button>
-          <button
-            type="button"
-            @click="executeDelete"
-            class="flex-1 py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-zinc-950 text-xs font-bold transition-all"
-          >
-            Hapus Sesi
-          </button>
-        </div>
-      </div>
-    </div>
+      <p class="text-xs text-zinc-400">
+        Sesi <span class="font-mono font-bold text-zinc-200">#{{ sessionToDelete?.id }}</span> akan dihapus permanen.
+      </p>
+
+      <template #footer>
+        <button
+          type="button"
+          @click="sessionToDelete = null"
+          class="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all"
+        >
+          Batal
+        </button>
+        <button
+          type="button"
+          @click="executeDelete"
+          class="flex-1 py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-zinc-950 text-xs font-bold transition-all"
+        >
+          Hapus
+        </button>
+      </template>
+    </FlowbiteModal>
 
   </div>
 </template>
@@ -464,6 +440,7 @@ import { useSessionStore } from '~/stores/session'
 import type { Session }    from '~/types/session'
 import { useAuth }         from '~/composables/useAuth'
 import { sessionPhotosDB } from '~/services/db'
+import FlowbiteModal        from '~/components/ui/FlowbiteModal.vue'
 
 definePageMeta({ layout: 'admin' })
 useSeoMeta({ title: 'Sesi Foto — RD Photobooth' })

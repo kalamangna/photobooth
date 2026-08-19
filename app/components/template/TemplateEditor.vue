@@ -23,6 +23,25 @@
       </div>
 
       <div class="flex items-center gap-2">
+        <input
+          ref="frameFileInputRef"
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          class="hidden"
+          @change="onFrameFileSelected"
+        />
+
+        <button
+          type="button"
+          @click="triggerFrameUpload"
+          class="px-3.5 py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm"
+          title="Unggah file gambar/frame PNG transparan (Canva / Photoshop)"
+        >
+          <Icon name="lucide:upload-cloud" class="w-3.5 h-3.5" />
+          <span class="hidden sm:inline">Upload Frame PNG</span>
+          <span class="sm:hidden">Frame</span>
+        </button>
+
         <span v-if="saveFeedback" class="text-xs font-bold text-emerald-400 mr-1">
           {{ saveFeedback }}
         </span>
@@ -110,10 +129,14 @@
 
 <script setup lang="ts">
 import { useTemplateStore } from '~/stores/template'
+import LayerPanel from '~/components/template/LayerPanel.vue'
+import CanvasPreview from '~/components/template/CanvasPreview.vue'
+import ElementProps from '~/components/template/ElementProps.vue'
 import {
   makePhotoElement,
   makeTextElement,
   makeShapeElement,
+  makeImageElement,
   type TemplateElement,
 } from '~/types/template'
 
@@ -231,8 +254,69 @@ function stopResize() {
   window.removeEventListener('mouseup',   stopResize)
 }
 
+// ─── Frame File Upload ─────────────────────────────────────────
+const frameFileInputRef = ref<HTMLInputElement | null>(null)
+
+function triggerFrameUpload() {
+  frameFileInputRef.value?.click()
+}
+
+function onFrameFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const dataUrl = e.target?.result as string
+    if (!dataUrl) return
+
+    // Cek apakah sudah ada Frame Overlay sebelumnya
+    const existingFrame = template.value.elements.find(
+      el => el.type === 'image' && el.name.toLowerCase().includes('frame')
+    )
+
+    if (existingFrame) {
+      templateStore.updateElement(existingFrame.id, {
+        src: dataUrl,
+        width: template.value.canvas.width,
+        height: template.value.canvas.height,
+        x: 0,
+        y: 0,
+        visible: true,
+      })
+      templateStore.selectElement(existingFrame.id)
+    } else {
+      const el = makeImageElement({
+        name: 'Frame Overlay',
+        src: dataUrl,
+        x: 0,
+        y: 0,
+        width: template.value.canvas.width,
+        height: template.value.canvas.height,
+        fit: 'cover',
+        blendMode: 'normal',
+        opacity: 1,
+      })
+      templateStore.addElement(el)
+      // Pindahkan frame overlay ke lapisan paling atas
+      templateStore.moveLayer(el.id, 'top')
+    }
+
+    saveFeedback.value = '✓ Frame Dimuat'
+    setTimeout(() => { saveFeedback.value = '' }, 2500)
+    input.value = ''
+  }
+  reader.readAsDataURL(file)
+}
+
 // ─── Add elements ─────────────────────────────────────────────
 function handleAddElement(type: string) {
+  if (type === 'image') {
+    triggerFrameUpload()
+    return
+  }
+
   const cx = Math.round(template.value.canvas.width  / 2)
   const cy = Math.round(template.value.canvas.height / 2)
   let el: TemplateElement

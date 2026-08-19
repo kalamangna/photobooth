@@ -27,8 +27,8 @@
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>
-          <h1 class="text-2xl font-bold tracking-tight text-zinc-100">Pengaturan Sistem</h1>
-          <p class="text-xs sm:text-sm text-zinc-400">Keamanan autentikasi PIN, penyimpanan cloud, dan manajemen data</p>
+          <h1 class="text-2xl font-bold tracking-tight text-zinc-100">Pengaturan</h1>
+          <p class="text-xs sm:text-sm text-zinc-400">PIN akses, penyimpanan cloud, dan hapus data</p>
         </div>
 
         <div class="flex items-center gap-3">
@@ -44,7 +44,7 @@
           >
             <Icon v-if="isSaving" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
             <Icon v-else name="lucide:save" class="w-4 h-4" />
-            <span>{{ isSaving ? 'Menyimpan…' : 'Simpan Pengaturan' }}</span>
+            <span>{{ isSaving ? 'Menyimpan…' : 'Simpan' }}</span>
           </button>
         </div>
       </div>
@@ -59,8 +59,8 @@
               <Icon name="lucide:shield-check" class="w-5 h-5" />
             </div>
             <div>
-              <h2 class="text-base font-bold text-zinc-100">Keamanan Akses (PIN)</h2>
-              <p class="text-xs text-zinc-400">Kunci 6-digit untuk masuk ke panel control</p>
+              <h2 class="text-base font-bold text-zinc-100">PIN Akses</h2>
+              <p class="text-xs text-zinc-400">Kunci PIN untuk login admin dan operator</p>
             </div>
           </div>
 
@@ -68,7 +68,7 @@
             <!-- PIN Admin -->
             <div>
               <label for="admin-pin-input" class="block text-xs font-semibold text-zinc-300 mb-1.5">
-                PIN Admin (Akses Penuh):
+                PIN Admin
               </label>
               <div class="relative">
                 <input
@@ -92,7 +92,7 @@
             <!-- PIN Operator -->
             <div>
               <label for="operator-pin-input" class="block text-xs font-semibold text-zinc-300 mb-1.5">
-                PIN Operator (Operasional Lokasi):
+                PIN Operator
               </label>
               <div class="relative">
                 <input
@@ -123,15 +123,15 @@
                 <Icon name="lucide:cloud" class="w-5 h-5" />
               </div>
               <div>
-                <h2 class="text-base font-bold text-zinc-100">Penyimpanan Cloud (Cloudinary)</h2>
-                <p class="text-xs text-zinc-400">QR Code langsung terhubung online (dapat diakses via 4G/5G)</p>
+                <h2 class="text-base font-bold text-zinc-100">Penyimpanan Cloud</h2>
+                <p class="text-xs text-zinc-400">Unggah foto ke cloud untuk scan QR online</p>
               </div>
             </div>
 
             <div class="flex flex-col gap-3">
               <div>
                 <label for="cloud-name-input" class="block text-xs font-semibold text-zinc-300 mb-1">
-                  Cloud Name:
+                  Cloud Name
                 </label>
                 <input
                   id="cloud-name-input"
@@ -144,7 +144,7 @@
 
               <div>
                 <label for="cloud-preset-input" class="block text-xs font-semibold text-zinc-300 mb-1">
-                  Upload Preset (Unsigned):
+                  Upload Preset (Unsigned)
                 </label>
                 <input
                   id="cloud-preset-input"
@@ -157,7 +157,7 @@
 
               <div>
                 <label for="cloud-folder-input" class="block text-xs font-semibold text-zinc-300 mb-1">
-                  Folder Cloud:
+                  Folder Cloud
                 </label>
                 <input
                   id="cloud-folder-input"
@@ -173,7 +173,7 @@
           <!-- Test Connection Row -->
           <div class="pt-2 border-t border-zinc-800/80 flex flex-col gap-2">
             <div class="flex items-center justify-between gap-2">
-              <span class="text-[11px] text-zinc-400">Pastikan preset bertipe <b class="text-zinc-200">Unsigned</b> di Cloudinary.</span>
+              <span class="text-[11px] text-zinc-400">Gunakan preset bertipe <b class="text-zinc-200">Unsigned</b> di Cloudinary.</span>
               <button
                 type="button"
                 @click="testCloudinaryConnection"
@@ -199,8 +199,8 @@
                 <Icon name="lucide:trash-2" class="w-5 h-5" />
               </div>
               <div>
-                <h2 class="text-base font-bold text-zinc-100">Penyimpanan & Danger Zone</h2>
-                <p class="text-xs text-zinc-400">Hapus riwayat sesi untuk mengosongkan memori</p>
+                <h2 class="text-base font-bold text-zinc-100">Hapus Data Sesi</h2>
+                <p class="text-xs text-zinc-400">Bersihkan riwayat foto dari memori lokal</p>
               </div>
             </div>
 
@@ -209,7 +209,7 @@
                 <div class="flex flex-col gap-1">
                   <p class="text-xs font-bold text-zinc-200">Sesi Hari Ini</p>
                   <p class="text-[11px] text-zinc-400">
-                    Menghapus sesi yang diambil pada hari ini saja. Sesi hari sebelumnya tetap tersimpan.
+                    Hapus sesi hari ini saja. Sesi hari sebelumnya tetap tersimpan.
                   </p>
                 </div>
                 <button
@@ -226,7 +226,7 @@
                 <div class="flex flex-col gap-1">
                   <p class="text-xs font-bold text-rose-300">Semua Sesi</p>
                   <p class="text-[11px] text-zinc-400">
-                    Menghapus seluruh riwayat sesi foto dan file dari server dan database lokal secara permanen.
+                    Hapus seluruh data foto dan riwayat sesi secara permanen.
                   </p>
                 </div>
                 <button
@@ -244,75 +244,65 @@
 
       </div>
 
-      <!-- Clear Today Confirmation Modal -->
-      <div
-        v-if="showClearModal"
-        class="fixed inset-0 z-60 flex items-center justify-center bg-zinc-950/80 p-4 backdrop-blur-sm"
-        @click.self="showClearModal = false"
+      <!-- ── Flowbite Modal: Clear Today Confirmation ────────── -->
+      <FlowbiteModal
+        v-model="showClearModal"
+        title="Hapus Sesi Hari Ini?"
+        icon="lucide:alert-circle"
+        icon-bg-class="bg-rose-500/10 text-rose-400 border border-rose-500/30"
+        size="sm"
       >
-        <div class="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 text-center">
-          <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto">
-            <Icon name="lucide:alert-circle" class="w-6 h-6" />
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-zinc-100">Bersihkan Sesi Hari Ini?</h3>
-            <p class="text-xs text-zinc-400 mt-1">
-              Seluruh data foto dan riwayat sesi hari ini akan dihapus permanen dari memori browser lokal.
-            </p>
-          </div>
-          <div class="flex items-center gap-2 pt-2">
-            <button
-              type="button"
-              @click="showClearModal = false"
-              class="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              @click="executeClearToday"
-              class="flex-1 py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-zinc-950 text-xs font-bold transition-all"
-            >
-              Ya, Bersihkan
-            </button>
-          </div>
-        </div>
-      </div>
+        <p class="text-xs text-zinc-400">
+          Seluruh data foto dan sesi hari ini akan dihapus permanen.
+        </p>
 
-      <!-- Clear All Confirmation Modal -->
-      <div
-        v-if="showClearAllModal"
-        class="fixed inset-0 z-60 flex items-center justify-center bg-zinc-950/80 p-4 backdrop-blur-sm"
-        @click.self="showClearAllModal = false"
+        <template #footer>
+          <button
+            type="button"
+            @click="showClearModal = false"
+            class="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            @click="executeClearToday"
+            class="flex-1 py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-zinc-950 text-xs font-bold transition-all"
+          >
+            Hapus
+          </button>
+        </template>
+      </FlowbiteModal>
+
+      <!-- ── Flowbite Modal: Clear All Confirmation ──────────── -->
+      <FlowbiteModal
+        v-model="showClearAllModal"
+        title="Hapus Semua Sesi?"
+        icon="lucide:trash-2"
+        icon-bg-class="bg-rose-500/10 text-rose-400 border border-rose-500/30"
+        size="sm"
       >
-        <div class="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 text-center">
-          <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto">
-            <Icon name="lucide:trash-2" class="w-6 h-6" />
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-zinc-100">Hapus Semua Sesi?</h3>
-            <p class="text-xs text-zinc-400 mt-1">
-              Seluruh data foto dan riwayat sesi dari awal akan dihapus permanen dari server dan penyimpanan lokal.
-            </p>
-          </div>
-          <div class="flex items-center gap-2 pt-2">
-            <button
-              type="button"
-              @click="showClearAllModal = false"
-              class="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              @click="executeClearAll"
-              class="flex-1 py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-zinc-950 text-xs font-bold transition-all"
-            >
-              Ya, Hapus Semua
-            </button>
-          </div>
-        </div>
-      </div>
+        <p class="text-xs text-zinc-400">
+          Seluruh data foto dan riwayat sesi akan dihapus permanen.
+        </p>
+
+        <template #footer>
+          <button
+            type="button"
+            @click="showClearAllModal = false"
+            class="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            @click="executeClearAll"
+            class="flex-1 py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-zinc-950 text-xs font-bold transition-all"
+          >
+            Hapus Semua
+          </button>
+        </template>
+      </FlowbiteModal>
 
     </div>
 
@@ -322,6 +312,7 @@
 <script setup lang="ts">
 import { useAuth }         from '~/composables/useAuth'
 import { useSessionStore } from '~/stores/session'
+import FlowbiteModal       from '~/components/ui/FlowbiteModal.vue'
 
 definePageMeta({ layout: 'admin' })
 useSeoMeta({ title: 'Pengaturan — RD Photobooth' })

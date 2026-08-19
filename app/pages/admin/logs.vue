@@ -10,8 +10,8 @@
         <Icon name="lucide:file-text" class="w-6 h-6" />
       </div>
       <div>
-        <h2 class="text-xl font-bold text-zinc-100">Khusus Akun Admin</h2>
-        <p class="text-xs sm:text-sm text-zinc-400 mt-1">Hanya akun Admin yang dapat mengakses riwayat log sistem.</p>
+        <h2 class="text-xl font-bold text-zinc-100">Akses Terbatas</h2>
+        <p class="text-xs sm:text-sm text-zinc-400 mt-1">Hanya Admin yang dapat mengakses riwayat log sistem.</p>
       </div>
       <NuxtLink
         to="/admin"
@@ -28,7 +28,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-zinc-100">Log Sistem</h1>
-          <p class="text-xs sm:text-sm text-zinc-400">Audit jejak aktivitas operasional dan diagnosa error</p>
+          <p class="text-xs sm:text-sm text-zinc-400">Catatan aktivitas dan error sistem</p>
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
@@ -107,13 +107,13 @@
       <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-lg">
         <div v-if="isLoading" class="py-16 flex flex-col items-center justify-center gap-3 text-zinc-400">
           <Icon name="lucide:loader-2" class="w-8 h-8 animate-spin text-amber-400" />
-          <span class="text-xs">Memuat data log…</span>
+          <span class="text-xs">Memuat log…</span>
         </div>
 
         <div v-else-if="filteredLogs.length === 0" class="py-16 flex flex-col items-center justify-center gap-2 text-center">
           <Icon name="lucide:file-text" class="w-8 h-8 text-zinc-600" />
-          <p class="text-sm font-bold text-zinc-200">Tidak Ada Catatan Log</p>
-          <p class="text-xs text-zinc-400">Tidak ditemukan log yang sesuai dengan filter atau kata kunci pencarian.</p>
+          <p class="text-sm font-bold text-zinc-200">Tidak Ada Log</p>
+          <p class="text-xs text-zinc-400">Belum ada catatan log sistem.</p>
         </div>
 
         <div v-else class="overflow-x-auto">
@@ -153,40 +153,35 @@
         </div>
       </div>
 
-      <!-- Clear Modal -->
-      <div
-        v-if="showClearLogsModal"
-        class="fixed inset-0 z-60 flex items-center justify-center bg-zinc-950/80 p-4 backdrop-blur-sm"
-        @click.self="showClearLogsModal = false"
+      <!-- ── Flowbite Modal: Clear Logs ──────────────────────── -->
+      <FlowbiteModal
+        v-model="showClearLogsModal"
+        title="Bersihkan Log?"
+        icon="lucide:alert-circle"
+        icon-bg-class="bg-rose-500/10 text-rose-400 border border-rose-500/30"
+        size="sm"
       >
-        <div class="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 text-center">
-          <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto">
-            <Icon name="lucide:alert-circle" class="w-6 h-6" />
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-zinc-100">Bersihkan Riwayat Log?</h3>
-            <p class="text-xs text-zinc-400 mt-1">
-              Seluruh riwayat catatan log sistem akan dihapus permanen dari memori browser.
-            </p>
-          </div>
-          <div class="flex items-center gap-2 pt-2">
-            <button
-              type="button"
-              @click="showClearLogsModal = false"
-              class="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              @click="executeClearLogs"
-              class="flex-1 py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-zinc-950 text-xs font-bold transition-all"
-            >
-              Ya, Bersihkan
-            </button>
-          </div>
-        </div>
-      </div>
+        <p class="text-xs text-zinc-400">
+          Seluruh catatan log sistem akan dihapus permanen.
+        </p>
+
+        <template #footer>
+          <button
+            type="button"
+            @click="showClearLogsModal = false"
+            class="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            @click="executeClearLogs"
+            class="flex-1 py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-400 text-zinc-950 text-xs font-bold transition-all"
+          >
+            Bersihkan
+          </button>
+        </template>
+      </FlowbiteModal>
 
     </div>
 
@@ -196,6 +191,7 @@
 <script setup lang="ts">
 import { logsDB, type SystemLog } from '~/services/db'
 import { useAuth }                from '~/composables/useAuth'
+import FlowbiteModal              from '~/components/ui/FlowbiteModal.vue'
 
 definePageMeta({ layout: 'admin' })
 useSeoMeta({ title: 'Log Sistem — RD Photobooth' })

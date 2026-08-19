@@ -5,7 +5,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
       <div>
         <h1 class="text-2xl font-bold tracking-tight text-zinc-100">Perangkat</h1>
-        <p class="text-xs sm:text-sm text-zinc-400">Status dan diagnostik kamera, printer, dan penyimpanan</p>
+        <p class="text-xs sm:text-sm text-zinc-400">Status kamera, printer, dan memori lokal</p>
       </div>
 
       <button
@@ -51,7 +51,7 @@
 
           <!-- Camera Selector (Admin only) -->
           <div v-if="auth.isAdmin.value && cameraDevices.length > 0" class="flex flex-col gap-1.5 pt-2 border-t border-zinc-800">
-            <label for="camera-device-select" class="text-xs text-zinc-400">Pilih Input Kamera:</label>
+            <label for="camera-device-select" class="text-xs text-zinc-400">Pilih Kamera</label>
             <select
               id="camera-device-select"
               v-model="selectedCameraId"
@@ -82,7 +82,7 @@
             : 'bg-amber-500 border-amber-500 text-zinc-950 hover:bg-amber-400'"
         >
           <Icon :name="isTestingCamera ? 'lucide:video-off' : 'lucide:video'" class="w-4 h-4" />
-          <span>{{ isTestingCamera ? 'Tutup Preview' : 'Tes Kamera' }}</span>
+          <span>{{ isTestingCamera ? 'Tutup Kamera' : 'Tes Kamera' }}</span>
         </button>
       </div>
 
@@ -131,7 +131,7 @@
         >
           <Icon v-if="isTestingPrint" name="lucide:loader-2" class="w-4 h-4 animate-spin" />
           <Icon v-else name="lucide:printer" class="w-4 h-4" />
-          <span>{{ isTestingPrint ? 'Mengirim...' : 'Tes Printer (Pola 300 DPI)' }}</span>
+          <span>{{ isTestingPrint ? 'Mengirim…' : 'Tes Cetak' }}</span>
         </button>
       </div>
 
@@ -175,7 +175,7 @@
           class="w-full py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-750 active:scale-95 text-zinc-200 text-xs font-bold transition-all flex items-center justify-center gap-2"
         >
           <Icon name="lucide:archive" class="w-4 h-4" />
-          <span>Buka Riwayat Sesi</span>
+          <span>Riwayat Sesi</span>
         </NuxtLink>
       </div>
 
